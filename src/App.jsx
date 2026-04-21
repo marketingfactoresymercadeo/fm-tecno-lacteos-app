@@ -5,115 +5,159 @@ import { useState, useRef, useCallback, useEffect } from "react";
 // ============================================================
 // NOTA: Actualizar el miércoles con la lista definitiva de gerencia
 const MATERIAS_PRIMAS_DB = {
-  "SUCRALOSA": {
-    categoria: "Edulcorante Artificial",
-    descripcion: "Edulcorante no calórico 600 veces más dulce que el azúcar",
-    icon: "🧪",
+  "ALMIDON NATIVO DE YUCA": {
+    categoria: "Almidón / Texturizante",
+    descripcion: "Almidón natural extraído de la yuca. Agente texturizante y ligante con excelente capacidad de retención de agua.",
+    icon: "🌾",
+    beneficio: "Mejora elasticidad, controla sinéresis y reduce mermas en cocción",
+    enYogur: true,
+    enShake: false,
     productos: [
-      { nombre: "Yogurt sin azúcar", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Helado bajo en calorías", tipo: "Lácteo", icon: "🍦" },
-      { nombre: "Leche saborizada light", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Embutidos reducidos en azúcar", tipo: "Cárnico", icon: "🌭" },
-      { nombre: "Jamón bajo en calorías", tipo: "Cárnico", icon: "🥩" },
-      { nombre: "Bebidas lácteas dietéticas", tipo: "Lácteo", icon: "🧃" },
+      { nombre: "Quesos análogos para fundir", tipo: "Lácteos", icon: "🧀" },
+      { nombre: "Arequipe / Dulce de leche", tipo: "Lácteos", icon: "🍮" },
+      { nombre: "Helados artesanales", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Salchichas y frankfurt", tipo: "Cárnicos", icon: "🌭" },
+      { nombre: "Jamón cocido premium", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Nuggets y empanizados", tipo: "Cárnicos", icon: "🍗" },
+      { nombre: "Panes sin gluten", tipo: "Panadería", icon: "🍞" },
+      { nombre: "Bizcochos y muffins", tipo: "Panadería", icon: "🧁" },
+      { nombre: "Sopas y salsas instantáneas", tipo: "Salsas", icon: "🥣" },
+      { nombre: "Gomitas y confites", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Excipiente para tabletas", tipo: "Farmacéutico", icon: "💊" },
     ],
   },
-  "SACARINA SODICA": {
-    categoria: "Edulcorante Artificial",
-    descripcion: "Edulcorante sintético ampliamente usado en la industria alimentaria",
-    icon: "🧪",
-    productos: [
-      { nombre: "Queso crema light", tipo: "Lácteo", icon: "🧀" },
-      { nombre: "Bebida de yogurt", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Salchicha dietética", tipo: "Cárnico", icon: "🌭" },
-      { nombre: "Dulce de leche sin azúcar", tipo: "Lácteo", icon: "🍮" },
-    ],
-  },
-  "ACESULFAME K": {
-    categoria: "Edulcorante Artificial",
-    descripcion: "Potenciador de dulzura, ideal en mezclas con otros edulcorantes",
-    icon: "🧪",
-    productos: [
-      { nombre: "Yogurt griego sin azúcar", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Helado de proteína", tipo: "Lácteo", icon: "🍦" },
-      { nombre: "Leche condensada light", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Mortadela reducida en azúcar", tipo: "Cárnico", icon: "🥩" },
-    ],
-  },
-  "SORBITOL": {
+  "ERITRITOL": {
     categoria: "Poliol / Edulcorante Natural",
-    descripcion: "Agente humectante y edulcorante de bajo índice glucémico",
-    icon: "🌿",
+    descripcion: "Edulcorante natural fermentado, 0 calorías y con perfil de dulzor limpio muy similar al azúcar.",
+    icon: "❄️",
+    beneficio: "Punto de congelación similar al azúcar, sin retrogusto amargo",
+    enYogur: true,
+    enShake: true,
     productos: [
-      { nombre: "Queso procesado", tipo: "Lácteo", icon: "🧀" },
-      { nombre: "Salchicha tipo Frankfurt", tipo: "Cárnico", icon: "🌭" },
-      { nombre: "Jamón cocido", tipo: "Cárnico", icon: "🥩" },
-      { nombre: "Helado sin azúcar", tipo: "Lácteo", icon: "🍦" },
-      { nombre: "Chorizo premium", tipo: "Cárnico", icon: "🥩" },
-    ],
-  },
-  "XYLITOL": {
-    categoria: "Poliol / Edulcorante Natural",
-    descripcion: "Edulcorante natural con efecto refrescante, bajo en calorías",
-    icon: "🌿",
-    productos: [
-      { nombre: "Postre lácteo sin azúcar", tipo: "Lácteo", icon: "🍮" },
-      { nombre: "Yogurt funcional", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Batido proteico", tipo: "Lácteo", icon: "🥤" },
-    ],
-  },
-  "MANITOL": {
-    categoria: "Poliol / Edulcorante Natural",
-    descripcion: "Agente de textura y edulcorante con baja higroscopicidad",
-    icon: "🌿",
-    productos: [
-      { nombre: "Queso en polvo", tipo: "Lácteo", icon: "🧀" },
-      { nombre: "Recubrimiento para queso", tipo: "Lácteo", icon: "🧀" },
-      { nombre: "Snack cárnico deshidratado", tipo: "Cárnico", icon: "🥩" },
-    ],
-  },
-  "NEOTAME": {
-    categoria: "Edulcorante Artificial",
-    descripcion: "Edulcorante de alta intensidad, hasta 13.000 veces más dulce que el azúcar",
-    icon: "🧪",
-    productos: [
-      { nombre: "Leche saborizada", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Yogurt de frutas", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Marinada para carnes", tipo: "Cárnico", icon: "🥩" },
-      { nombre: "Glaseado para jamón", tipo: "Cárnico", icon: "🍖" },
-    ],
-  },
-  "TREALOSA": {
-    categoria: "Azúcar Natural",
-    descripcion: "Disacárido estabilizante, protege proteínas durante el procesamiento",
-    icon: "🔬",
-    productos: [
-      { nombre: "Helado premium", tipo: "Lácteo", icon: "🍦" },
-      { nombre: "Queso mozzarella", tipo: "Lácteo", icon: "🧀" },
-      { nombre: "Carne procesada congelada", tipo: "Cárnico", icon: "🥩" },
-      { nombre: "Nuggets de pollo", tipo: "Cárnico", icon: "🍗" },
-      { nombre: "Hamburguesa congelada", tipo: "Cárnico", icon: "🍔" },
+      { nombre: "Yogurt sin azúcar", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Helados light", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Leche saborizada diet", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Jamones glaseados keto", tipo: "Cárnicos", icon: "🍖" },
+      { nombre: "Salsas BBQ reducidas", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Galletas diabéticas", tipo: "Panadería", icon: "🍪" },
+      { nombre: "Muffins sin azúcar", tipo: "Panadería", icon: "🧁" },
+      { nombre: "Bebidas deportivas", tipo: "Bebidas", icon: "🥤" },
+      { nombre: "Chocolates sin azúcar", tipo: "Confitería", icon: "🍫" },
+      { nombre: "Gomas de mascar", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Proteínas en polvo", tipo: "Nutracéuticos", icon: "💪" },
+      { nombre: "Pastas dentales", tipo: "Cuidado personal", icon: "🦷" },
     ],
   },
   "MONK FRUIT": {
     categoria: "Edulcorante Natural",
-    descripcion: "Extracto de fruta del monje, edulcorante natural sin calorías",
+    descripcion: "Extracto natural de la fruta del monje (luo han guo), 150-250 veces más dulce que el azúcar, sin calorías.",
     icon: "🍈",
+    beneficio: "Dulzor intenso de origen natural, sin retrogusto herbal",
+    enYogur: true,
+    enShake: true,
     productos: [
-      { nombre: "Yogurt orgánico", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Leche de almendras", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Mantequilla de maní", tipo: "Otro", icon: "🥜" },
-      { nombre: "Batido proteico natural", tipo: "Lácteo", icon: "🥤" },
+      { nombre: "Yogurt natural premium", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Helados premium naturales", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Smoothies y batidos", tipo: "Lácteos", icon: "🥤" },
+      { nombre: "Marinadas reducidas en azúcar", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Postres keto", tipo: "Panadería", icon: "🍰" },
+      { nombre: "Galletas sin azúcar", tipo: "Panadería", icon: "🍪" },
+      { nombre: "Aguas saborizadas", tipo: "Bebidas", icon: "💧" },
+      { nombre: "Kombuchas y tés", tipo: "Bebidas", icon: "🍵" },
+      { nombre: "Chocolates artesanales", tipo: "Confitería", icon: "🍫" },
+      { nombre: "Barras de proteína", tipo: "Nutracéuticos", icon: "🍫" },
+      { nombre: "Suplementos naturales", tipo: "Nutracéuticos", icon: "💊" },
     ],
   },
-  "ASPARTAME": {
-    categoria: "Edulcorante Artificial",
-    descripcion: "Edulcorante bajo en calorías ampliamente utilizado en la industria",
-    icon: "🧪",
+  "LECHE EN POLVO": {
+    categoria: "Proteína Láctea / Base",
+    descripcion: "Leche deshidratada con alto contenido proteico y gran versatilidad industrial.",
+    icon: "🥛",
+    beneficio: "Aumenta extracto seco, mejora cremosidad y actúa como ligante proteico",
+    enYogur: true,
+    enShake: true,
     productos: [
-      { nombre: "Yogurt dietético", tipo: "Lácteo", icon: "🥛" },
-      { nombre: "Postre de gelatina", tipo: "Lácteo", icon: "🍮" },
-      { nombre: "Bebida láctea light", tipo: "Lácteo", icon: "🧃" },
+      { nombre: "Queso crema premium", tipo: "Lácteos", icon: "🧀" },
+      { nombre: "Helados artesanales", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Dulce de leche / Arequipe", tipo: "Lácteos", icon: "🍮" },
+      { nombre: "Flan y natillas", tipo: "Lácteos", icon: "🍮" },
+      { nombre: "Emulsiones cárnicas", tipo: "Cárnicos", icon: "🌭" },
+      { nombre: "Jamones premium", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Panes enriquecidos", tipo: "Panadería", icon: "🍞" },
+      { nombre: "Pasteles y bizcochos", tipo: "Panadería", icon: "🎂" },
+      { nombre: "Chocolates con leche", tipo: "Confitería", icon: "🍫" },
+      { nombre: "Caramelos masticables", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Bebidas achocolatadas", tipo: "Bebidas", icon: "🥤" },
+      { nombre: "Cafés instantáneos", tipo: "Bebidas", icon: "☕" },
+      { nombre: "Fórmulas infantiles", tipo: "Nutracéuticos", icon: "🍼" },
+      { nombre: "Suplementos proteicos", tipo: "Nutracéuticos", icon: "💪" },
+    ],
+  },
+  "CULTIVOS BAL": {
+    categoria: "Cultivos Lácticos / Iniciadores",
+    descripcion: "Bacterias ácido lácticas (BAL) iniciadoras que fermentan, texturizan y desarrollan aroma y sabor.",
+    icon: "🦠",
+    beneficio: "Fermentación controlada, biopreservación y desarrollo de perfil sensorial",
+    enYogur: true,
+    enShake: false,
+    productos: [
+      { nombre: "Yogurt tradicional", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Queso fresco y maduros", tipo: "Lácteos", icon: "🧀" },
+      { nombre: "Kéfir", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Mantequilla fermentada", tipo: "Lácteos", icon: "🧈" },
+      { nombre: "Chorizo español", tipo: "Cárnicos", icon: "🌭" },
+      { nombre: "Salami y pepperoni", tipo: "Cárnicos", icon: "🍕" },
+      { nombre: "Jamón curado tipo serrano", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Masa madre / Sourdough", tipo: "Panadería", icon: "🥖" },
+      { nombre: "Panes artesanales", tipo: "Panadería", icon: "🍞" },
+      { nombre: "Kombuchas fermentadas", tipo: "Bebidas", icon: "🍵" },
+      { nombre: "Chucrut y encurtidos", tipo: "Vegetales", icon: "🥬" },
+      { nombre: "Yogures vegetales (soya, coco)", tipo: "Vegetales", icon: "🌱" },
+    ],
+  },
+  "PROBIOTICOS L. CASEI": {
+    categoria: "Probiótico Funcional",
+    descripcion: "Cultivo probiótico con respaldo científico, contribuye al balance intestinal e inmunidad.",
+    icon: "🧬",
+    beneficio: "Alimento funcional con declaraciones de salud permitidas",
+    enYogur: true,
+    enShake: true,
+    productos: [
+      { nombre: "Yogurt funcional probiótico", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Leches fermentadas tipo Yakult", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Postres lácteos funcionales", tipo: "Lácteos", icon: "🍮" },
+      { nombre: "Kéfir funcional", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Embutidos probióticos", tipo: "Cárnicos", icon: "🌭" },
+      { nombre: "Panes funcionales", tipo: "Panadería", icon: "🍞" },
+      { nombre: "Jugos probióticos", tipo: "Bebidas", icon: "🧃" },
+      { nombre: "Bebidas de inmunidad", tipo: "Bebidas", icon: "🥤" },
+      { nombre: "Cápsulas probióticas", tipo: "Nutracéuticos", icon: "💊" },
+      { nombre: "Sobres y barras funcionales", tipo: "Nutracéuticos", icon: "📦" },
+      { nombre: "Cremas con probióticos", tipo: "Cosmética", icon: "🧴" },
+    ],
+  },
+  "SACAROSA": {
+    categoria: "Azúcar / Carbohidrato",
+    descripcion: "Azúcar de caña o remolacha, edulcorante universal y fuente energética para cultivos fermentadores.",
+    icon: "🍯",
+    beneficio: "Alimento para cultivos BAL en fermentados, endulzante y agente de cuerpo",
+    enYogur: true,
+    enShake: false,
+    productos: [
+      { nombre: "Yogurt endulzado", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Helados tradicionales", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Leche condensada", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Postres lácteos", tipo: "Lácteos", icon: "🍮" },
+      { nombre: "Salami y curados", tipo: "Cárnicos", icon: "🍖" },
+      { nombre: "Jamones glaseados", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Salsas BBQ", tipo: "Cárnicos", icon: "🍖" },
+      { nombre: "Galletas y pasteles", tipo: "Panadería", icon: "🍪" },
+      { nombre: "Panes dulces", tipo: "Panadería", icon: "🥐" },
+      { nombre: "Gaseosas y jugos", tipo: "Bebidas", icon: "🥤" },
+      { nombre: "Bebidas energéticas", tipo: "Bebidas", icon: "⚡" },
+      { nombre: "Chocolates y caramelos", tipo: "Confitería", icon: "🍫" },
+      { nombre: "Mermeladas y conservas", tipo: "Confitería", icon: "🍓" },
+      { nombre: "Jarabes farmacéuticos", tipo: "Farmacéutico", icon: "💊" },
     ],
   },
 };
@@ -121,21 +165,84 @@ const MATERIAS_PRIMAS_DB = {
 // ============================================================
 // HELPER: Fuzzy match materia prima
 // ============================================================
+// Aliases para mejorar el reconocimiento
+const ALIASES = {
+  "ALMIDON": "ALMIDON NATIVO DE YUCA",
+  "ALMIDON YUCA": "ALMIDON NATIVO DE YUCA",
+  "ALMIDON DE YUCA": "ALMIDON NATIVO DE YUCA",
+  "ALMIDON NATIVO": "ALMIDON NATIVO DE YUCA",
+  "YUCA": "ALMIDON NATIVO DE YUCA",
+  "ERYTHRITOL": "ERITRITOL",
+  "MONK": "MONK FRUIT",
+  "LUO HAN GUO": "MONK FRUIT",
+  "FRUTA DEL MONJE": "MONK FRUIT",
+  "LECHE POLVO": "LECHE EN POLVO",
+  "LECHE EN POVO": "LECHE EN POLVO",
+  "MILK POWDER": "LECHE EN POLVO",
+  "BAL": "CULTIVOS BAL",
+  "CULTIVO BAL": "CULTIVOS BAL",
+  "CULTIVOS LACTICOS": "CULTIVOS BAL",
+  "CULTIVO LACTICO": "CULTIVOS BAL",
+  "INICIADOR": "CULTIVOS BAL",
+  "PROBIOTICO": "PROBIOTICOS L. CASEI",
+  "PROBIOTICOS": "PROBIOTICOS L. CASEI",
+  "L. CASEI": "PROBIOTICOS L. CASEI",
+  "LACTOBACILLUS": "PROBIOTICOS L. CASEI",
+  "AZUCAR": "SACAROSA",
+  "SUCROSA": "SACAROSA",
+  "SUGAR": "SACAROSA",
+};
+
+function normalize(text) {
+  return text
+    .toUpperCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove accents
+    .replace(/[^A-Z0-9\s.]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function findMateriaPrima(text) {
-  const normalized = text.toUpperCase().trim();
-  // Direct match
+  const normalized = normalize(text);
+  if (!normalized || normalized === "NO_IDENTIFICADO") return null;
+
+  // Direct match on keys
   if (MATERIAS_PRIMAS_DB[normalized]) return { key: normalized, ...MATERIAS_PRIMAS_DB[normalized] };
-  // Partial match
+
+  // Check aliases
+  if (ALIASES[normalized]) {
+    const key = ALIASES[normalized];
+    return { key, ...MATERIAS_PRIMAS_DB[key] };
+  }
+
+  // Partial match against keys
   for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       return { key, ...MATERIAS_PRIMAS_DB[key] };
     }
   }
+
+  // Partial match against aliases
+  for (const alias of Object.keys(ALIASES)) {
+    if (normalized.includes(alias) || alias.includes(normalized)) {
+      const key = ALIASES[alias];
+      return { key, ...MATERIAS_PRIMAS_DB[key] };
+    }
+  }
+
   // Word-level match
-  const words = normalized.split(/\s+/);
+  const words = normalized.split(/\s+/).filter((w) => w.length > 3);
   for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
     for (const word of words) {
-      if (word.length > 3 && key.includes(word)) {
+      if (key.includes(word)) return { key, ...MATERIAS_PRIMAS_DB[key] };
+    }
+  }
+  for (const alias of Object.keys(ALIASES)) {
+    for (const word of words) {
+      if (alias.includes(word) && word.length > 4) {
+        const key = ALIASES[alias];
         return { key, ...MATERIAS_PRIMAS_DB[key] };
       }
     }
@@ -322,19 +429,19 @@ function WelcomeScreen({ onStart }) {
           border: "1px solid rgba(255,255,255,0.12)", maxWidth: "380px",
           margin: "0 auto 36px",
         }}>
-          <div style={{ fontSize: "40px", marginBottom: "16px" }}>📸</div>
+          <div style={{ fontSize: "40px", marginBottom: "16px" }}>✨</div>
           <h2 style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "18px",
             color: "#fff", fontWeight: 600, margin: "0 0 12px",
           }}>
-            Descubre el potencial de cada ingrediente
+            Un ingrediente,<br/>decenas de posibilidades
           </h2>
           <p style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
             color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0,
           }}>
-            Toma una foto del rótulo de la materia prima y descubre todos los productos
-            que puedes crear con ella.
+            Escanea el rótulo de cualquier materia prima y descubre todos
+            los productos donde puede estar presente.
           </p>
         </div>
 
@@ -814,8 +921,70 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
             fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
             color: "rgba(255,255,255,0.6)", margin: "12px 0 0", lineHeight: 1.5,
           }}>{data.descripcion}</p>
+
+          {/* Demo Product Badges */}
+          {(data.enYogur || data.enShake) && (
+            <div style={{
+              display: "flex", gap: "8px", marginTop: "14px", flexWrap: "wrap",
+            }}>
+              {data.enYogur && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  background: `linear-gradient(135deg, ${COLORS.tertiary} 0%, #ff9a5c 100%)`,
+                  padding: "6px 12px", borderRadius: "20px",
+                  boxShadow: "0 4px 12px rgba(255,113,45,0.3)",
+                }}>
+                  <span style={{ fontSize: "14px" }}>🥛</span>
+                  <span style={{
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                    color: "#fff", fontWeight: 700, letterSpacing: "0.3px",
+                  }}>EN NUESTRO YOGUR</span>
+                </div>
+              )}
+              {data.enShake && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  background: `linear-gradient(135deg, ${COLORS.tertiary} 0%, #ff9a5c 100%)`,
+                  padding: "6px 12px", borderRadius: "20px",
+                  boxShadow: "0 4px 12px rgba(255,113,45,0.3)",
+                }}>
+                  <span style={{ fontSize: "14px" }}>💪</span>
+                  <span style={{
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                    color: "#fff", fontWeight: 700, letterSpacing: "0.3px",
+                  }}>EN NUESTRO SHAKE</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Beneficio clave */}
+      {data.beneficio && (
+        <div style={{ padding: "20px 20px 0" }}>
+          <div style={{
+            background: COLORS.cardBg, borderRadius: "16px",
+            padding: "16px 18px", display: "flex",
+            alignItems: "flex-start", gap: "12px",
+            borderLeft: `4px solid ${COLORS.tertiary}`,
+            boxShadow: "0 2px 8px rgba(26,40,110,0.06)",
+          }}>
+            <span style={{ fontSize: "22px", lineHeight: 1 }}>💡</span>
+            <div>
+              <div style={{
+                fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+                color: COLORS.tertiary, fontWeight: 700, textTransform: "uppercase",
+                letterSpacing: "1.5px", marginBottom: "3px",
+              }}>Beneficio Clave</div>
+              <div style={{
+                fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+                color: COLORS.secondary, lineHeight: 1.5, fontWeight: 500,
+              }}>{data.beneficio}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Products Count */}
       <div style={{ padding: "20px 20px 0" }}>
@@ -827,7 +996,7 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
           <span style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
             color: COLORS.secondary, fontWeight: 600,
-          }}>productos aplicables</span>
+          }}>productos en {new Set(data.productos.map(p => p.tipo)).size} industrias</span>
         </div>
       </div>
 
@@ -857,43 +1026,59 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
 
       {/* Product Cards */}
       <div style={{ padding: "4px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
-        {filtered.map((prod, i) => (
-          <div
-            key={prod.nombre}
-            style={{
-              display: "flex", alignItems: "center", gap: "14px",
-              background: COLORS.cardBg, padding: "16px 18px",
-              borderRadius: "16px",
-              boxShadow: "0 2px 8px rgba(26,40,110,0.05)",
-              animation: `slideUp 0.5s ease forwards`,
-              animationDelay: `${i * 0.07}s`,
-              opacity: 0,
-              borderLeft: `4px solid ${prod.tipo === "Lácteo" ? COLORS.secondary : prod.tipo === "Cárnico" ? COLORS.tertiary : "#10b981"}`,
-            }}
-          >
-            <span style={{ fontSize: "30px" }}>{prod.icon}</span>
-            <div style={{ flex: 1 }}>
+        {filtered.map((prod, i) => {
+          const typeColors = {
+            "Lácteos": { main: "#1a286e", bg: "rgba(26,40,110,0.08)" },
+            "Cárnicos": { main: "#ff712d", bg: "rgba(255,113,45,0.08)" },
+            "Panadería": { main: "#d4a04c", bg: "rgba(212,160,76,0.1)" },
+            "Bebidas": { main: "#2196f3", bg: "rgba(33,150,243,0.08)" },
+            "Confitería": { main: "#e91e63", bg: "rgba(233,30,99,0.08)" },
+            "Nutracéuticos": { main: "#10b981", bg: "rgba(16,185,129,0.08)" },
+            "Farmacéutico": { main: "#8b5cf6", bg: "rgba(139,92,246,0.08)" },
+            "Cosmética": { main: "#ec4899", bg: "rgba(236,72,153,0.08)" },
+            "Cuidado personal": { main: "#06b6d4", bg: "rgba(6,182,212,0.08)" },
+            "Vegetales": { main: "#84cc16", bg: "rgba(132,204,22,0.1)" },
+            "Salsas": { main: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+          };
+          const c = typeColors[prod.tipo] || { main: "#6b7280", bg: "rgba(107,114,128,0.08)" };
+          return (
+            <div
+              key={prod.nombre + i}
+              style={{
+                display: "flex", alignItems: "center", gap: "14px",
+                background: COLORS.cardBg, padding: "16px 18px",
+                borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(26,40,110,0.05)",
+                animation: `slideUp 0.5s ease forwards`,
+                animationDelay: `${i * 0.05}s`,
+                opacity: 0,
+                borderLeft: `4px solid ${c.main}`,
+              }}
+            >
+              <span style={{ fontSize: "30px" }}>{prod.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
+                  color: COLORS.secondary, fontWeight: 700,
+                }}>{prod.nombre}</div>
+                <span style={{
+                  fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+                  color: c.main, textTransform: "uppercase",
+                  letterSpacing: "1px", fontWeight: 600,
+                }}>{prod.tipo}</span>
+              </div>
               <div style={{
-                fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
-                color: COLORS.secondary, fontWeight: 700,
-              }}>{prod.nombre}</div>
-              <span style={{
-                fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
-                color: COLORS.textLight, textTransform: "uppercase",
-                letterSpacing: "1px",
-              }}>{prod.tipo}</span>
+                width: "32px", height: "32px", borderRadius: "50%",
+                background: c.bg,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "11px", color: c.main,
+                fontWeight: 700, fontFamily: "'Open Sans', sans-serif",
+              }}>
+                F&M
+              </div>
             </div>
-            <div style={{
-              width: "32px", height: "32px", borderRadius: "50%",
-              background: prod.tipo === "Lácteo" ? "rgba(26,40,110,0.08)" : prod.tipo === "Cárnico" ? "rgba(255,113,45,0.08)" : "rgba(16,185,129,0.08)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "12px", color: prod.tipo === "Lácteo" ? COLORS.secondary : prod.tipo === "Cárnico" ? COLORS.tertiary : "#10b981",
-              fontWeight: 700, fontFamily: "'Open Sans', sans-serif",
-            }}>
-              F&M
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Bottom Actions */}
@@ -1039,9 +1224,10 @@ export default function App() {
               },
               {
                 type: "text",
-                text: `Identifica el nombre de la materia prima o ingrediente alimentario que aparece en este rótulo/etiqueta. 
-Responde ÚNICAMENTE con el nombre del ingrediente en mayúsculas, sin explicación. 
-Ejemplos: SUCRALOSA, SORBITOL, ACESULFAME K, MONK FRUIT, TREALOSA, SACARINA SODICA, XYLITOL, MANITOL, NEOTAME, ASPARTAME.
+                text: `Identifica el nombre de la materia prima o ingrediente alimentario que aparece en este rótulo/etiqueta.
+Responde ÚNICAMENTE con el nombre del ingrediente en mayúsculas, sin explicación.
+Ingredientes posibles: ALMIDON NATIVO DE YUCA, ERITRITOL, MONK FRUIT, LECHE EN POLVO, CULTIVOS BAL, PROBIOTICOS L. CASEI, SACAROSA.
+Variantes aceptadas: ALMIDON, YUCA, ERYTHRITOL, LUO HAN GUO, FRUTA DEL MONJE, MILK POWDER, CULTIVOS LACTICOS, INICIADOR, L. CASEI, LACTOBACILLUS, AZUCAR, SUGAR.
 Si no puedes identificar un ingrediente claro, responde: NO_IDENTIFICADO`,
               },
             ],
@@ -1073,6 +1259,13 @@ Si no puedes identificar un ingrediente claro, responde: NO_IDENTIFICADO`,
 
   return (
     <>
+      <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+      <style>{`
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Open Sans', sans-serif; overscroll-behavior: none; }
+        ::-webkit-scrollbar { width: 0; }
+      `}</style>
+
       {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("lead")} />}
       {screen === "lead" && (
         <LeadCapture
