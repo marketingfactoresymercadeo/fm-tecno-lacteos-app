@@ -10,7 +10,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Almidón natural de yuca. Texturizante y ligante con excelente retención de agua.",
     icon: "🌾",
     beneficio: "Mejora elasticidad, controla sinéresis y reduce mermas en cocción",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Quesos análogos para fundir", tipo: "Lácteos", icon: "🧀" },
       { nombre: "Arequipe / Dulce de leche", tipo: "Lácteos", icon: "🍮" },
@@ -30,7 +30,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Edulcorante natural fermentado, 0 calorías, perfil de dulzor limpio.",
     icon: "❄️",
     beneficio: "Punto de congelación similar al azúcar, sin retrogusto amargo",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Yogurt sin azúcar", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados light", tipo: "Lácteos", icon: "🍦" },
@@ -51,7 +51,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Extracto de la fruta del monje (luo han guo), 200x más dulce que azúcar, sin calorías.",
     icon: "🍈",
     beneficio: "Dulzor intenso de origen natural, sin retrogusto herbal",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Yogurt natural premium", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados premium naturales", tipo: "Lácteos", icon: "🍦" },
@@ -71,7 +71,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Leche deshidratada con alto contenido proteico y gran versatilidad industrial.",
     icon: "🥛",
     beneficio: "Aumenta extracto seco, mejora cremosidad y actúa como ligante proteico",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Queso crema premium", tipo: "Lácteos", icon: "🧀" },
       { nombre: "Helados artesanales", tipo: "Lácteos", icon: "🍦" },
@@ -92,7 +92,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Bacterias ácido lácticas iniciadoras que fermentan, texturizan y desarrollan sabor.",
     icon: "🦠",
     beneficio: "Fermentación controlada, biopreservación y desarrollo sensorial",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Yogurt tradicional", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Queso fresco y maduros", tipo: "Lácteos", icon: "🧀" },
@@ -111,7 +111,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Cultivo probiótico que contribuye al balance intestinal e inmunidad.",
     icon: "🧬",
     beneficio: "Alimento funcional con declaraciones de salud permitidas",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Yogurt funcional probiótico", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Leches fermentadas tipo Yakult", tipo: "Lácteos", icon: "🥛" },
@@ -128,7 +128,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Azúcar de caña, edulcorante universal y fuente energética para fermentadores.",
     icon: "🍯",
     beneficio: "Alimento para cultivos BAL, endulzante y agente de cuerpo",
-    enYogur: true, enShake: false,
+    enYogur: true, enShake: false, enMermelada: false,
     productos: [
       { nombre: "Yogurt endulzado", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados tradicionales", tipo: "Lácteos", icon: "🍦" },
@@ -147,7 +147,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Concentrado de proteína de suero al 80%. Tecnología Isochill para alta solubilidad.",
     icon: "💪",
     beneficio: "Aporta emulsificación, perfil aminoacídico completo y excelente solubilidad",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Batidos deportivos (shakes)", tipo: "Nutracéuticos", icon: "🥤" },
       { nombre: "Sustitutos de comida", tipo: "Nutracéuticos", icon: "🍱" },
@@ -166,7 +166,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Proteína biodisponible con péptidos pequeños. Mejora viscosidad sin alterar sabor.",
     icon: "✨",
     beneficio: "Salud articular, piel y tejidos. Claim funcional 'beauty-from-within'",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Barras de proteína", tipo: "Nutracéuticos", icon: "🍫" },
       { nombre: "Bebidas funcionales", tipo: "Bebidas", icon: "🥤" },
@@ -184,7 +184,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Agente de hidratación y soporte de matriz elástica. Tendencia 'Bienestar Holístico'.",
     icon: "💧",
     beneficio: "Salud de piel y articulaciones. Producto premium de alto valor",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas 'beauty'", tipo: "Bebidas", icon: "✨" },
       { nombre: "Suplementos anti-edad", tipo: "Nutracéuticos", icon: "💊" },
@@ -201,7 +201,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Estabilizante, espesante y agente de suspensión de alta eficiencia en bajas dosis.",
     icon: "🧊",
     beneficio: "Estabilidad de emulsiones, evita sedimentación, mejora estructura sin gluten",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Yogurt bebible", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados cremosos", tipo: "Lácteos", icon: "🍦" },
@@ -219,7 +219,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Tecnología Cold Water Soluble que permite dispersión en frío sin sedimentación.",
     icon: "☀️",
     beneficio: "Fortificación invisible, sin anillos de grasa ni sedimentación",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Leches fortificadas", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Leches vegetales (almendras, soya)", tipo: "Vegetales", icon: "🌱" },
@@ -236,7 +236,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Fuente mineral de alta biodisponibilidad. Regulador de acidez y fortificante.",
     icon: "⚡",
     beneficio: "Alta absorción, sin sabor metálico de otros fortificantes",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas isotónicas", tipo: "Bebidas", icon: "🥤" },
       { nombre: "Polvos para descanso/sueño", tipo: "Nutracéuticos", icon: "🌙" },
@@ -252,7 +252,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Aporte de color natural, sabor a cereal y azúcares fermentables.",
     icon: "🌾",
     beneficio: "Notas dulces y maltosas, redondea sabores intensos",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas malteadas", tipo: "Bebidas", icon: "🥤" },
       { nombre: "Cervezas artesanales", tipo: "Bebidas", icon: "🍺" },
@@ -268,7 +268,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Agente antiaglomerante (Perkasyl) que facilita el flujo de polvos.",
     icon: "🏖️",
     beneficio: "Evita compactación, mejora flujo y envasado automático",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Mezclas en polvo (premix)", tipo: "Nutracéuticos", icon: "📦" },
       { nombre: "Especias y condimentos", tipo: "Salsas", icon: "🌶️" },
@@ -284,7 +284,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Ácido ascórbico. Antioxidante natural y fortificante vitamínico.",
     icon: "🍊",
     beneficio: "Conservante natural y fortificación inmune",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Conservación de frutas", tipo: "Vegetales", icon: "🍓" },
       { nombre: "Jugos fortificados", tipo: "Bebidas", icon: "🧃" },
@@ -301,7 +301,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Vitaminas B-2 (riboflavina), B-8 (biotina), B-9 (ácido fólico). Co-factores metabólicos.",
     icon: "💊",
     beneficio: "Claim de salud energética, cabello, piel y uñas",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas energéticas", tipo: "Bebidas", icon: "⚡" },
       { nombre: "Nutrición infantil", tipo: "Nutracéuticos", icon: "🍼" },
@@ -317,7 +317,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Fortificación de hierro de alta solubilidad y menor impacto en sabor.",
     icon: "🩸",
     beneficio: "Sabor neutro vs otros sulfatos de hierro",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Fórmulas infantiles", tipo: "Nutracéuticos", icon: "🍼" },
       { nombre: "Cereales para desayuno", tipo: "Panadería", icon: "🥣" },
@@ -332,7 +332,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Cultivo iniciador con billones de microorganismos. Resistente a procesos de mezcla.",
     icon: "🧬",
     beneficio: "Funcionalidad digestiva e inmune, sobrevive en matrices secas",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Lácteos fermentados", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Kéfir tradicional", tipo: "Lácteos", icon: "🥛" },
@@ -347,7 +347,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Mezcla de edulcorantes para reducción de azúcar con perfil sensorial limpio.",
     icon: "🍯",
     beneficio: "Sin retrogusto metálico, ideal para sugar-free premium",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas reducidas en calorías", tipo: "Bebidas", icon: "🥤" },
       { nombre: "Postres sin azúcar", tipo: "Lácteos", icon: "🍮" },
@@ -363,7 +363,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Aporte de notas dulces y aromáticas auténticas. Versión Etil 2-3x más potente.",
     icon: "🌼",
     beneficio: "Sabor primario universal, alta estabilidad térmica",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Repostería fina", tipo: "Panadería", icon: "🍰" },
       { nombre: "Helados clásicos", tipo: "Lácteos", icon: "🍦" },
@@ -379,7 +379,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Agente de blanqueo y aporte de cremosidad sin lactosa.",
     icon: "🌙",
     beneficio: "Mouthfeel cremoso, sin lactosa, opacidad blanca",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Cafés 3 en 1", tipo: "Bebidas", icon: "☕" },
       { nombre: "Sopas instantáneas", tipo: "Salsas", icon: "🥣" },
@@ -395,7 +395,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Cocoa alcalinizada negra (10-12%). Color intenso y sabor más suave.",
     icon: "🍫",
     beneficio: "Color visualmente atractivo sin colorantes artificiales",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Helados de chocolate oscuro", tipo: "Lácteos", icon: "🍦" },
       { nombre: "Galletas tipo sandwich", tipo: "Panadería", icon: "🍪" },
@@ -410,7 +410,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Cocoa natural en polvo. Aporte de sabor a cacao auténtico y polifenoles.",
     icon: "🍫",
     beneficio: "Antioxidantes naturales, claim funcional",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Mezclas saludables", tipo: "Nutracéuticos", icon: "🥤" },
       { nombre: "Repostería funcional", tipo: "Panadería", icon: "🧁" },
@@ -425,7 +425,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Perfil aromático fresa de alta fidelidad. Enmascara notas lácteas del WPC.",
     icon: "🍓",
     beneficio: "Sabor frutal vibrante, estable en matrices proteicas",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Yogures de fresa", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados de fresa", tipo: "Lácteos", icon: "🍦" },
@@ -441,7 +441,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Aporte de perfil aromático primario. Estandariza el sabor frente a variaciones de cacao.",
     icon: "🍫",
     beneficio: "Sabor consistente lote a lote, alta intensidad",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Batidos premium", tipo: "Nutracéuticos", icon: "🥤" },
       { nombre: "Rellenos de galletería", tipo: "Panadería", icon: "🍪" },
@@ -456,7 +456,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Colorante Rojo No. 40 de alta estabilidad frente a luz y pH. Color rosado/rojo vibrante.",
     icon: "🌹",
     beneficio: "Color comercial atractivo, estable en producción",
-    enYogur: false, enShake: true,
+    enYogur: false, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Bebidas en polvo", tipo: "Bebidas", icon: "🥤" },
       { nombre: "Gomas de mascar", tipo: "Confitería", icon: "🍬" },
@@ -465,6 +465,65 @@ const MATERIAS_PRIMAS_DB = {
       { nombre: "Yogures de fresa", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Embutidos rojos", tipo: "Cárnicos", icon: "🌭" },
       { nombre: "Cocteles y bebidas", tipo: "Bebidas", icon: "🍹" },
+    ],
+  },
+  "PECTINA": {
+    categoria: "Hidrocoloide / Gelificante",
+    descripcion: "Agente gelificante que forma una red atrapando agua y azúcar, dando consistencia.",
+    icon: "🍓",
+    beneficio: "Salud: fibra soluble, reduce colesterol. Técnico: mejora textura y sensación en boca",
+    enYogur: false, enShake: false, enMermelada: true,
+    productos: [
+      { nombre: "Mermeladas y conservas", tipo: "Confitería", icon: "🍓" },
+      { nombre: "Gomitas y gelatinas", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Yogures de fruta", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Helados con frutas", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Néctares de fruta", tipo: "Bebidas", icon: "🧃" },
+      { nombre: "Rellenos de pastelería", tipo: "Panadería", icon: "🥧" },
+      { nombre: "Yogures cremosos", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Embutidos light", tipo: "Cárnicos", icon: "🌭" },
+      { nombre: "Suplementos de fibra", tipo: "Nutracéuticos", icon: "💊" },
+      { nombre: "Bebidas funcionales", tipo: "Bebidas", icon: "🥤" },
+    ],
+  },
+  "ACIDO CITRICO": {
+    categoria: "Acidulante / Conservante",
+    descripcion: "Regulador de acidez y conservante. Ajusta el pH para activar la pectina y otros ingredientes.",
+    icon: "🍋",
+    beneficio: "Salud: antioxidante, mejora absorción de minerales. Técnico: previene oxidación",
+    enYogur: false, enShake: false, enMermelada: true,
+    productos: [
+      { nombre: "Mermeladas y conservas", tipo: "Confitería", icon: "🍓" },
+      { nombre: "Bebidas y refrescos", tipo: "Bebidas", icon: "🥤" },
+      { nombre: "Dulces ácidos", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Embutidos curados", tipo: "Cárnicos", icon: "🥩" },
+      { nombre: "Quesos procesados", tipo: "Lácteos", icon: "🧀" },
+      { nombre: "Encurtidos vegetales", tipo: "Vegetales", icon: "🥒" },
+      { nombre: "Salsas y aderezos", tipo: "Salsas", icon: "🥣" },
+      { nombre: "Helados con frutas", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Vinos y vinagres", tipo: "Bebidas", icon: "🍷" },
+      { nombre: "Suplementos efervescentes", tipo: "Nutracéuticos", icon: "💊" },
+      { nombre: "Cosméticos exfoliantes", tipo: "Cosmética", icon: "🧴" },
+    ],
+  },
+  "XILITOL": {
+    categoria: "Poliol / Edulcorante de Carga",
+    descripcion: "Edulcorante de carga que sustituye al azúcar 1:1 en dulzor y volumen (bulking agent).",
+    icon: "❄️",
+    beneficio: "Salud: índice glucémico bajo (apto para diabéticos), previene la caries. Técnico: efecto refrescante en boca",
+    enYogur: false, enShake: false, enMermelada: true,
+    productos: [
+      { nombre: "Mermeladas sin azúcar", tipo: "Confitería", icon: "🍓" },
+      { nombre: "Gomas de mascar", tipo: "Confitería", icon: "🍬" },
+      { nombre: "Chocolates sin azúcar", tipo: "Confitería", icon: "🍫" },
+      { nombre: "Repostería keto", tipo: "Panadería", icon: "🍰" },
+      { nombre: "Galletas diabéticas", tipo: "Panadería", icon: "🍪" },
+      { nombre: "Yogures sin azúcar", tipo: "Lácteos", icon: "🥛" },
+      { nombre: "Helados sin azúcar", tipo: "Lácteos", icon: "🍦" },
+      { nombre: "Enjuagues bucales", tipo: "Cuidado personal", icon: "🦷" },
+      { nombre: "Pastas dentales", tipo: "Cuidado personal", icon: "🦷" },
+      { nombre: "Caramelos sin caries", tipo: "Confitería", icon: "🍭" },
+      { nombre: "Jarabes farmacéuticos", tipo: "Farmacéutico", icon: "💊" },
     ],
   },
 };
@@ -588,6 +647,22 @@ const ALIASES = {
   "RED 40": "ROJO ALLURA",
   "ALLURA RED": "ROJO ALLURA",
   "COLOR ROJO": "ROJO ALLURA",
+  // Mermelada
+  "PECTIN": "PECTINA",
+  "PECTINA HM": "PECTINA",
+  "PECTINA LM": "PECTINA",
+  "PECTINA CITRICA": "PECTINA",
+  "PECTINA DE MANZANA": "PECTINA",
+  "PECTINA DE CITRICOS": "PECTINA",
+  "CITRIC ACID": "ACIDO CITRICO",
+  "ACIDO CITRICO ANHIDRO": "ACIDO CITRICO",
+  "ACIDO CITRICO MONOHIDRATO": "ACIDO CITRICO",
+  "CITRATO": "ACIDO CITRICO",
+  "E330": "ACIDO CITRICO",
+  "XYLITOL": "XILITOL",
+  "AZUCAR DE ABEDUL": "XILITOL",
+  "BIRCH SUGAR": "XILITOL",
+  "HKXC10": "XILITOL",
 };
 
 function normalize(text) {
@@ -1148,7 +1223,8 @@ function ManualSelect({ onSelect, onBack }) {
                         item.categoria.toLowerCase().includes(search.toLowerCase());
     const matchFilter = productFilter === "Todos" ||
                         (productFilter === "Yogur" && item.enYogur) ||
-                        (productFilter === "Shake" && item.enShake);
+                        (productFilter === "Shake" && item.enShake) ||
+                        (productFilter === "Mermelada" && item.enMermelada);
     return matchSearch && matchFilter;
   });
 
@@ -1156,6 +1232,7 @@ function ManualSelect({ onSelect, onBack }) {
     { id: "Todos", label: "Todos", icon: "📋", count: allKeys.length },
     { id: "Yogur", label: "Yogur", icon: "🥛", count: allKeys.filter((k) => MATERIAS_PRIMAS_DB[k].enYogur).length },
     { id: "Shake", label: "Shake", icon: "💪", count: allKeys.filter((k) => MATERIAS_PRIMAS_DB[k].enShake).length },
+    { id: "Mermelada", label: "Mermelada", icon: "🍓", count: allKeys.filter((k) => MATERIAS_PRIMAS_DB[k].enMermelada).length },
   ];
 
   return (
@@ -1270,6 +1347,13 @@ function ManualSelect({ onSelect, onBack }) {
                     background: "rgba(255,113,45,0.1)", color: COLORS.tertiary,
                     fontWeight: 700,
                   }}>💪</span>
+                )}
+                {item.enMermelada && (
+                  <span style={{
+                    fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
+                    background: "rgba(233,30,99,0.1)", color: "#e91e63",
+                    fontWeight: 700,
+                  }}>🍓</span>
                 )}
               </div>
               <span style={{ color: COLORS.tertiary, fontSize: "16px" }}>→</span>
@@ -1387,7 +1471,7 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
           }}>{data.descripcion}</p>
 
           {/* Demo Product Badges */}
-          {(data.enYogur || data.enShake) && (
+          {(data.enYogur || data.enShake || data.enMermelada) && (
             <div style={{
               display: "flex", gap: "8px", marginTop: "14px", flexWrap: "wrap",
             }}>
@@ -1417,6 +1501,20 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
                     fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
                     color: "#fff", fontWeight: 700, letterSpacing: "0.3px",
                   }}>EN NUESTRO SHAKE</span>
+                </div>
+              )}
+              {data.enMermelada && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  background: `linear-gradient(135deg, ${COLORS.tertiary} 0%, #ff9a5c 100%)`,
+                  padding: "6px 12px", borderRadius: "20px",
+                  boxShadow: "0 4px 12px rgba(255,113,45,0.3)",
+                }}>
+                  <span style={{ fontSize: "14px" }}>🍓</span>
+                  <span style={{
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                    color: "#fff", fontWeight: 700, letterSpacing: "0.3px",
+                  }}>EN NUESTRA MERMELADA</span>
                 </div>
               )}
             </div>
@@ -1694,8 +1792,9 @@ Responde ÚNICAMENTE con el nombre del ingrediente en mayúsculas, sin explicaci
 Ingredientes oficiales del catálogo F&M:
 - Para Yogurt: ALMIDON NATIVO DE YUCA, ERITRITOL, MONK FRUIT, LECHE EN POLVO, CULTIVOS BAL, PROBIOTICOS L. CASEI, SACAROSA
 - Para Shake: PROTEINA WPC 80, COLAGENO HIDROLIZADO, ACIDO HIALURONICO, GOMA XANTHAN, VITAMINA D3 CWS, CITRATO DE MAGNESIO, EXTRACTO DE MALTA, DIOXIDO DE SILICIO, VITAMINA C, COMPLEJO VITAMINICO B, LACTATO FERROSO, AB-KEFIR 200B, NEOSWEET S, VAINILLINA, CREMA NO LACTEA, COCOA ALCALINA, COCOA NATURAL, SABOR FRESA, SABOR CHOCOLATE, ROJO ALLURA
+- Para Mermelada: PECTINA, ACIDO CITRICO, XILITOL
 
-Variantes aceptadas que también puedes responder: WPC 80, ISOCHILL, COLAGENO, HIALURONICO, XANTHAN, PERKASYL, BIOTINA, ACIDO FOLICO, AB-KEFIR, KEFIR, MALTA, VAINILLA, NON-DAIRY, COCOA, CACAO, FRESA, CHOCOLATE, ALLURA, ROJO 40, AZUCAR, ALMIDON, YUCA, BAL, L. CASEI, LACTOBACILLUS.
+Variantes aceptadas que también puedes responder: WPC 80, ISOCHILL, COLAGENO, HIALURONICO, XANTHAN, PERKASYL, BIOTINA, ACIDO FOLICO, AB-KEFIR, KEFIR, MALTA, VAINILLA, NON-DAIRY, COCOA, CACAO, FRESA, CHOCOLATE, ALLURA, ROJO 40, AZUCAR, ALMIDON, YUCA, BAL, L. CASEI, LACTOBACILLUS, PECTIN, CITRIC ACID, XYLITOL, BIRCH SUGAR, E330.
 
 Si no puedes identificar un ingrediente claro o el rótulo no corresponde a un ingrediente conocido, responde: NO_IDENTIFICADO`,
               },
