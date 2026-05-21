@@ -1,9 +1,172 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 // ============================================================
+// CONFIGURACIÓN — Google Sheets endpoint
+// ============================================================
+// Pegar aquí la URL del Apps Script Web App (ver docs/SETUP_GOOGLE_SHEETS.md)
+// Mientras no se configure, la app guarda los leads en localStorage como respaldo.
+const GOOGLE_SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbx-pp8iE1jrEbwtppVJpDceO0PVo5BRDsrOD81AT7NxXY8eccm6kRPv9iWgVJzMgG9TJA/exec";
+
+// ============================================================
+// BASE DE DATOS DE PRODUCTOS DEMO (HABLADORES)
+// ============================================================
+const PRODUCTOS_DEMO = {
+  YOGURT_VAINILLA: {
+    nombre: "Yogurt Vainilla",
+    titulo: "Yogurt",
+    subtitulo: "Vainilla",
+    icon: "🥛",
+    descripcion: "Yogurt fermentado con cultivos vivos, textura cremosa y sabor vainilla auténtico. Perfecto para reducción de azúcar y funcionalidad probiótica.",
+    colorPrimario: "#1a286e",
+    colorAcento: "#d4a04c",
+    grupos: [
+      {
+        titulo: "Base Láctea",
+        descripcion: "Fundamento proteico del producto",
+        icon: "🥛",
+        materiasPrimas: ["LECHE EN POLVO"],
+      },
+      {
+        titulo: "Fermentación Funcional",
+        descripcion: "Cultivos vivos y probióticos para salud digestiva",
+        icon: "🦠",
+        materiasPrimas: ["CULTIVOS BAL", "PROBIOTICOS L. CASEI"],
+      },
+      {
+        titulo: "Endulzantes",
+        descripcion: "Sacarosa + alternativas naturales sin calorías",
+        icon: "🍯",
+        materiasPrimas: ["SACAROSA", "ERITRITOL", "MONK FRUIT"],
+      },
+      {
+        titulo: "Textura y Estabilidad",
+        descripcion: "Cremosidad, cuerpo y control de sinéresis",
+        icon: "🌾",
+        materiasPrimas: ["ALMIDON NATIVO DE YUCA"],
+      },
+      {
+        titulo: "Sabor",
+        descripcion: "Vainilla natural de alta estabilidad",
+        icon: "🌼",
+        materiasPrimas: ["VAINILLINA"],
+      },
+    ],
+  },
+  MALTEADA_CHOCOLATE: {
+    nombre: "Malteada Chocolate",
+    titulo: "Malteada",
+    subtitulo: "Chocolate",
+    icon: "🥤",
+    descripcion: "Shake premium con proteína concentrada de suero, ingredientes funcionales tipo beauty-from-within y perfil sensorial de chocolate intenso.",
+    colorPrimario: "#5d3a1f",
+    colorAcento: "#ff712d",
+    grupos: [
+      {
+        titulo: "Proteína y Funcionalidad",
+        descripcion: "Concentrado WPC + bioactivos premium",
+        icon: "💪",
+        materiasPrimas: ["PROTEINA WPC 80", "COLAGENO HIDROLIZADO", "ACIDO HIALURONICO"],
+      },
+      {
+        titulo: "Vitaminas y Minerales",
+        descripcion: "Fortificación con biodisponibilidad alta",
+        icon: "💊",
+        materiasPrimas: ["VITAMINA D3 CWS", "CITRATO DE MAGNESIO", "VITAMINA C", "COMPLEJO VITAMINICO B", "LACTATO FERROSO"],
+      },
+      {
+        titulo: "Cultivos Tecnológicos",
+        descripcion: "Probióticos resistentes a procesos en polvo",
+        icon: "🧬",
+        materiasPrimas: ["AB-KEFIR 200B"],
+      },
+      {
+        titulo: "Estabilidad y Tecnología",
+        descripcion: "Estabilizantes y antiaglomerantes para polvos",
+        icon: "🧊",
+        materiasPrimas: ["GOMA XANTHAN", "DIOXIDO DE SILICIO"],
+      },
+      {
+        titulo: "Endulzante y Cremosidad",
+        descripcion: "Reducción de azúcar y mouthfeel sin lactosa",
+        icon: "🌙",
+        materiasPrimas: ["NEOSWEET S", "CREMA NO LACTEA"],
+      },
+      {
+        titulo: "Sabor Chocolate",
+        descripcion: "Cocoas y saborizantes para perfil intenso",
+        icon: "🍫",
+        materiasPrimas: ["COCOA ALCALINA", "COCOA NATURAL", "SABOR CHOCOLATE", "EXTRACTO DE MALTA"],
+      },
+    ],
+  },
+  MERMELADA_FRESA: {
+    nombre: "Mermelada Fresa",
+    titulo: "Mermelada",
+    subtitulo: "Fresa",
+    icon: "🍓",
+    descripcion: "Mermelada de fresa con perfil reducido en azúcar, textura clásica de cuchara y color vibrante. Apta para diabéticos y públicos premium.",
+    colorPrimario: "#c2185b",
+    colorAcento: "#e91e63",
+    grupos: [
+      {
+        titulo: "Gelificación",
+        descripcion: "Red estructural que da consistencia",
+        icon: "🍓",
+        materiasPrimas: ["PECTINA"],
+      },
+      {
+        titulo: "Regulación de pH",
+        descripcion: "Activa la pectina y conserva color",
+        icon: "🍋",
+        materiasPrimas: ["ACIDO CITRICO"],
+      },
+      {
+        titulo: "Endulzante de Carga",
+        descripcion: "Sustituto 1:1 del azúcar, apto para diabéticos",
+        icon: "❄️",
+        materiasPrimas: ["XILITOL"],
+      },
+      {
+        titulo: "Sabor y Color",
+        descripcion: "Identidad sensorial de fresa",
+        icon: "🌹",
+        materiasPrimas: ["SABOR FRESA", "ROJO ALLURA"],
+      },
+    ],
+  },
+};
+
+const PRODUCTOS_ALIASES = {
+  // Yogurt Vainilla
+  "YOGURT": "YOGURT_VAINILLA",
+  "YOGUR": "YOGURT_VAINILLA",
+  "YOGURT VAINILLA": "YOGURT_VAINILLA",
+  "YOGUR VAINILLA": "YOGURT_VAINILLA",
+  "YOGURT VANILLA": "YOGURT_VAINILLA",
+  "VANILLA YOGURT": "YOGURT_VAINILLA",
+  // Malteada Chocolate
+  "MALTEADA": "MALTEADA_CHOCOLATE",
+  "MALTEADA CHOCOLATE": "MALTEADA_CHOCOLATE",
+  "MILKSHAKE": "MALTEADA_CHOCOLATE",
+  "MILKSHAKE CHOCOLATE": "MALTEADA_CHOCOLATE",
+  "BATIDO CHOCOLATE": "MALTEADA_CHOCOLATE",
+  "BATIDO": "MALTEADA_CHOCOLATE",
+  "SHAKE": "MALTEADA_CHOCOLATE",
+  "SHAKE CHOCOLATE": "MALTEADA_CHOCOLATE",
+  "CHOCOLATE SHAKE": "MALTEADA_CHOCOLATE",
+  // Mermelada Fresa
+  "MERMELADA": "MERMELADA_FRESA",
+  "MERMELADA FRESA": "MERMELADA_FRESA",
+  "JAM": "MERMELADA_FRESA",
+  "STRAWBERRY JAM": "MERMELADA_FRESA",
+  "JALEA": "MERMELADA_FRESA",
+  "JALEA FRESA": "MERMELADA_FRESA",
+  "CONSERVA FRESA": "MERMELADA_FRESA",
+};
+
+// ============================================================
 // BASE DE DATOS DE MATERIAS PRIMAS → PRODUCTOS
 // ============================================================
-// NOTA: Actualizar el miércoles con la lista definitiva de gerencia
 const MATERIAS_PRIMAS_DB = {
   "ALMIDON NATIVO DE YUCA": {
     categoria: "Almidón / Texturizante",
@@ -363,7 +526,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Aporte de notas dulces y aromáticas auténticas. Versión Etil 2-3x más potente.",
     icon: "🌼",
     beneficio: "Sabor primario universal, alta estabilidad térmica",
-    enYogur: false, enShake: true, enMermelada: false,
+    enYogur: true, enShake: true, enMermelada: false,
     productos: [
       { nombre: "Repostería fina", tipo: "Panadería", icon: "🍰" },
       { nombre: "Helados clásicos", tipo: "Lácteos", icon: "🍦" },
@@ -425,7 +588,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Perfil aromático fresa de alta fidelidad. Enmascara notas lácteas del WPC.",
     icon: "🍓",
     beneficio: "Sabor frutal vibrante, estable en matrices proteicas",
-    enYogur: false, enShake: true, enMermelada: false,
+    enYogur: false, enShake: true, enMermelada: true,
     productos: [
       { nombre: "Yogures de fresa", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Helados de fresa", tipo: "Lácteos", icon: "🍦" },
@@ -434,6 +597,7 @@ const MATERIAS_PRIMAS_DB = {
       { nombre: "Gomitas frutales", tipo: "Confitería", icon: "🍬" },
       { nombre: "Bebidas en polvo", tipo: "Bebidas", icon: "🧃" },
       { nombre: "Galletas rellenas", tipo: "Panadería", icon: "🍪" },
+      { nombre: "Mermeladas premium", tipo: "Confitería", icon: "🍓" },
     ],
   },
   "SABOR CHOCOLATE": {
@@ -456,7 +620,7 @@ const MATERIAS_PRIMAS_DB = {
     descripcion: "Colorante Rojo No. 40 de alta estabilidad frente a luz y pH. Color rosado/rojo vibrante.",
     icon: "🌹",
     beneficio: "Color comercial atractivo, estable en producción",
-    enYogur: false, enShake: true, enMermelada: false,
+    enYogur: false, enShake: true, enMermelada: true,
     productos: [
       { nombre: "Bebidas en polvo", tipo: "Bebidas", icon: "🥤" },
       { nombre: "Gomas de mascar", tipo: "Confitería", icon: "🍬" },
@@ -465,6 +629,7 @@ const MATERIAS_PRIMAS_DB = {
       { nombre: "Yogures de fresa", tipo: "Lácteos", icon: "🥛" },
       { nombre: "Embutidos rojos", tipo: "Cárnicos", icon: "🌭" },
       { nombre: "Cocteles y bebidas", tipo: "Bebidas", icon: "🍹" },
+      { nombre: "Mermeladas con color", tipo: "Confitería", icon: "🍓" },
     ],
   },
   "PECTINA": {
@@ -529,197 +694,169 @@ const MATERIAS_PRIMAS_DB = {
 };
 
 // ============================================================
-// HELPER: Fuzzy match materia prima
+// ALIASES PARA MATERIAS PRIMAS
 // ============================================================
-// Aliases para mejorar el reconocimiento de imagen y selección manual
 const ALIASES = {
-  // Yogurt
-  "ALMIDON": "ALMIDON NATIVO DE YUCA",
-  "ALMIDON YUCA": "ALMIDON NATIVO DE YUCA",
-  "ALMIDON DE YUCA": "ALMIDON NATIVO DE YUCA",
-  "ALMIDON NATIVO": "ALMIDON NATIVO DE YUCA",
-  "YUCA": "ALMIDON NATIVO DE YUCA",
-  "ERYTHRITOL": "ERITRITOL",
-  "MONK": "MONK FRUIT",
-  "LUO HAN GUO": "MONK FRUIT",
-  "FRUTA DEL MONJE": "MONK FRUIT",
-  "LECHE POLVO": "LECHE EN POLVO",
-  "MILK POWDER": "LECHE EN POLVO",
-  "LECHE DESHIDRATADA": "LECHE EN POLVO",
-  "BAL": "CULTIVOS BAL",
-  "CULTIVO BAL": "CULTIVOS BAL",
-  "CULTIVOS LACTICOS": "CULTIVOS BAL",
-  "CULTIVO LACTICO": "CULTIVOS BAL",
-  "INICIADOR": "CULTIVOS BAL",
-  "PROBIOTICO": "PROBIOTICOS L. CASEI",
-  "PROBIOTICOS": "PROBIOTICOS L. CASEI",
-  "L. CASEI": "PROBIOTICOS L. CASEI",
-  "L CASEI": "PROBIOTICOS L. CASEI",
-  "LACTOBACILLUS": "PROBIOTICOS L. CASEI",
-  "LACTOBACILLUS CASEI": "PROBIOTICOS L. CASEI",
-  "AZUCAR": "SACAROSA",
-  "SUCROSA": "SACAROSA",
-  "SUGAR": "SACAROSA",
-  // Shake - Proteínas
-  "WPC": "PROTEINA WPC 80",
-  "WPC 80": "PROTEINA WPC 80",
-  "WPC80": "PROTEINA WPC 80",
-  "ISOCHILL": "PROTEINA WPC 80",
-  "WHEY": "PROTEINA WPC 80",
-  "PROTEINA WHEY": "PROTEINA WPC 80",
-  "SUERO LACTEO": "PROTEINA WPC 80",
-  "COLAGENO": "COLAGENO HIDROLIZADO",
-  "COLLAGEN": "COLAGENO HIDROLIZADO",
-  "PEPTIDOS DE COLAGENO": "COLAGENO HIDROLIZADO",
-  "HIALURONICO": "ACIDO HIALURONICO",
-  "HYALURONIC": "ACIDO HIALURONICO",
-  "HA": "ACIDO HIALURONICO",
-  // Shake - Estabilizantes/Antiaglomerantes
-  "XANTHAN": "GOMA XANTHAN",
-  "XANTAN": "GOMA XANTHAN",
-  "GOMA XANTAN": "GOMA XANTHAN",
-  "XANTHAN GUM": "GOMA XANTHAN",
-  "PERKASYL": "DIOXIDO DE SILICIO",
-  "DIOXIDO SILICIO": "DIOXIDO DE SILICIO",
-  "SIO2": "DIOXIDO DE SILICIO",
-  "SILICIO": "DIOXIDO DE SILICIO",
-  // Shake - Vitaminas y Minerales
-  "VITAMINA D": "VITAMINA D3 CWS",
-  "VITAMINA D3": "VITAMINA D3 CWS",
-  "D3 CWS": "VITAMINA D3 CWS",
-  "D3": "VITAMINA D3 CWS",
-  "MAGNESIO": "CITRATO DE MAGNESIO",
-  "CITRATO MAGNESIO": "CITRATO DE MAGNESIO",
-  "ACIDO ASCORBICO": "VITAMINA C",
-  "ASCORBICO": "VITAMINA C",
-  "VITC": "VITAMINA C",
-  "BIOTINA": "COMPLEJO VITAMINICO B",
-  "ACIDO FOLICO": "COMPLEJO VITAMINICO B",
-  "RIBOFLAVINA": "COMPLEJO VITAMINICO B",
-  "B2": "COMPLEJO VITAMINICO B",
-  "B8": "COMPLEJO VITAMINICO B",
-  "B9": "COMPLEJO VITAMINICO B",
-  "VITAMINAS B": "COMPLEJO VITAMINICO B",
-  "COMPLEJO B": "COMPLEJO VITAMINICO B",
-  "HIERRO": "LACTATO FERROSO",
-  "FERROSO": "LACTATO FERROSO",
-  "LACTATO HIERRO": "LACTATO FERROSO",
-  // Shake - Probióticos/Cultivos
-  "AB KEFIR": "AB-KEFIR 200B",
-  "ABKEFIR": "AB-KEFIR 200B",
-  "KEFIR": "AB-KEFIR 200B",
-  "AB-KEFIR": "AB-KEFIR 200B",
-  "200B": "AB-KEFIR 200B",
-  // Shake - Saborizantes y otros
-  "MALTA": "EXTRACTO DE MALTA",
-  "EXTRACTO MALTA": "EXTRACTO DE MALTA",
-  "MALT EXTRACT": "EXTRACTO DE MALTA",
-  "VAINILLA": "VAINILLINA",
-  "VANILLA": "VAINILLINA",
-  "ETIL VAINILLINA": "VAINILLINA",
-  "VAINILLINA NATURAL": "VAINILLINA",
-  "VANILLIN": "VAINILLINA",
-  "NEOSWEET": "NEOSWEET S",
-  "NON DAIRY": "CREMA NO LACTEA",
-  "NON-DAIRY": "CREMA NO LACTEA",
-  "CREMA NO DAIRY": "CREMA NO LACTEA",
-  "F25": "CREMA NO LACTEA",
-  "F25 A": "CREMA NO LACTEA",
-  // Shake - Cocoas
-  "COCOA": "COCOA NATURAL",
-  "CACAO": "COCOA NATURAL",
-  "CACAO POLVO": "COCOA NATURAL",
-  "COCOA POLVO": "COCOA NATURAL",
-  "COCOA NEGRA": "COCOA ALCALINA",
-  "COCOA ALCALINIZADA": "COCOA ALCALINA",
-  "DUTCH COCOA": "COCOA ALCALINA",
-  "BLACK COCOA": "COCOA ALCALINA",
-  // Shake - Sabores
-  "FRESA": "SABOR FRESA",
-  "STRAWBERRY": "SABOR FRESA",
-  "J015": "SABOR FRESA",
-  "CHOCOLATE": "SABOR CHOCOLATE",
-  "GSF": "SABOR CHOCOLATE",
-  // Shake - Colorantes
-  "ALLURA": "ROJO ALLURA",
-  "ROJO 40": "ROJO ALLURA",
-  "ROJO NO 40": "ROJO ALLURA",
-  "RED 40": "ROJO ALLURA",
-  "ALLURA RED": "ROJO ALLURA",
-  "COLOR ROJO": "ROJO ALLURA",
-  // Mermelada
-  "PECTIN": "PECTINA",
-  "PECTINA HM": "PECTINA",
-  "PECTINA LM": "PECTINA",
-  "PECTINA CITRICA": "PECTINA",
-  "PECTINA DE MANZANA": "PECTINA",
-  "PECTINA DE CITRICOS": "PECTINA",
-  "CITRIC ACID": "ACIDO CITRICO",
-  "ACIDO CITRICO ANHIDRO": "ACIDO CITRICO",
-  "ACIDO CITRICO MONOHIDRATO": "ACIDO CITRICO",
-  "CITRATO": "ACIDO CITRICO",
-  "E330": "ACIDO CITRICO",
-  "XYLITOL": "XILITOL",
-  "AZUCAR DE ABEDUL": "XILITOL",
-  "BIRCH SUGAR": "XILITOL",
-  "HKXC10": "XILITOL",
+  "ALMIDON": "ALMIDON NATIVO DE YUCA", "ALMIDON YUCA": "ALMIDON NATIVO DE YUCA",
+  "ALMIDON DE YUCA": "ALMIDON NATIVO DE YUCA", "ALMIDON NATIVO": "ALMIDON NATIVO DE YUCA",
+  "YUCA": "ALMIDON NATIVO DE YUCA", "ERYTHRITOL": "ERITRITOL", "MONK": "MONK FRUIT",
+  "LUO HAN GUO": "MONK FRUIT", "FRUTA DEL MONJE": "MONK FRUIT",
+  "LECHE POLVO": "LECHE EN POLVO", "MILK POWDER": "LECHE EN POLVO",
+  "LECHE DESHIDRATADA": "LECHE EN POLVO", "BAL": "CULTIVOS BAL", "CULTIVO BAL": "CULTIVOS BAL",
+  "CULTIVOS LACTICOS": "CULTIVOS BAL", "CULTIVO LACTICO": "CULTIVOS BAL", "INICIADOR": "CULTIVOS BAL",
+  "PROBIOTICO": "PROBIOTICOS L. CASEI", "PROBIOTICOS": "PROBIOTICOS L. CASEI",
+  "L. CASEI": "PROBIOTICOS L. CASEI", "L CASEI": "PROBIOTICOS L. CASEI",
+  "LACTOBACILLUS": "PROBIOTICOS L. CASEI", "LACTOBACILLUS CASEI": "PROBIOTICOS L. CASEI",
+  "AZUCAR": "SACAROSA", "SUCROSA": "SACAROSA", "SUGAR": "SACAROSA",
+  "WPC": "PROTEINA WPC 80", "WPC 80": "PROTEINA WPC 80", "WPC80": "PROTEINA WPC 80",
+  "ISOCHILL": "PROTEINA WPC 80", "WHEY": "PROTEINA WPC 80",
+  "PROTEINA WHEY": "PROTEINA WPC 80", "SUERO LACTEO": "PROTEINA WPC 80",
+  "COLAGENO": "COLAGENO HIDROLIZADO", "COLLAGEN": "COLAGENO HIDROLIZADO",
+  "PEPTIDOS DE COLAGENO": "COLAGENO HIDROLIZADO", "HIALURONICO": "ACIDO HIALURONICO",
+  "HYALURONIC": "ACIDO HIALURONICO", "HA": "ACIDO HIALURONICO",
+  "XANTHAN": "GOMA XANTHAN", "XANTAN": "GOMA XANTHAN", "GOMA XANTAN": "GOMA XANTHAN",
+  "XANTHAN GUM": "GOMA XANTHAN", "PERKASYL": "DIOXIDO DE SILICIO",
+  "DIOXIDO SILICIO": "DIOXIDO DE SILICIO", "SIO2": "DIOXIDO DE SILICIO",
+  "SILICIO": "DIOXIDO DE SILICIO", "VITAMINA D": "VITAMINA D3 CWS",
+  "VITAMINA D3": "VITAMINA D3 CWS", "D3 CWS": "VITAMINA D3 CWS", "D3": "VITAMINA D3 CWS",
+  "MAGNESIO": "CITRATO DE MAGNESIO", "CITRATO MAGNESIO": "CITRATO DE MAGNESIO",
+  "ACIDO ASCORBICO": "VITAMINA C", "ASCORBICO": "VITAMINA C", "VITC": "VITAMINA C",
+  "BIOTINA": "COMPLEJO VITAMINICO B", "ACIDO FOLICO": "COMPLEJO VITAMINICO B",
+  "RIBOFLAVINA": "COMPLEJO VITAMINICO B", "B2": "COMPLEJO VITAMINICO B",
+  "B8": "COMPLEJO VITAMINICO B", "B9": "COMPLEJO VITAMINICO B",
+  "VITAMINAS B": "COMPLEJO VITAMINICO B", "COMPLEJO B": "COMPLEJO VITAMINICO B",
+  "HIERRO": "LACTATO FERROSO", "FERROSO": "LACTATO FERROSO",
+  "LACTATO HIERRO": "LACTATO FERROSO", "AB KEFIR": "AB-KEFIR 200B",
+  "ABKEFIR": "AB-KEFIR 200B", "KEFIR": "AB-KEFIR 200B",
+  "AB-KEFIR": "AB-KEFIR 200B", "200B": "AB-KEFIR 200B",
+  "MALTA": "EXTRACTO DE MALTA", "EXTRACTO MALTA": "EXTRACTO DE MALTA",
+  "MALT EXTRACT": "EXTRACTO DE MALTA", "VAINILLA": "VAINILLINA",
+  "VANILLA": "VAINILLINA", "ETIL VAINILLINA": "VAINILLINA",
+  "VAINILLINA NATURAL": "VAINILLINA", "VANILLIN": "VAINILLINA",
+  "NEOSWEET": "NEOSWEET S", "NON DAIRY": "CREMA NO LACTEA",
+  "NON-DAIRY": "CREMA NO LACTEA", "CREMA NO DAIRY": "CREMA NO LACTEA",
+  "F25": "CREMA NO LACTEA", "F25 A": "CREMA NO LACTEA",
+  "COCOA": "COCOA NATURAL", "CACAO": "COCOA NATURAL",
+  "CACAO POLVO": "COCOA NATURAL", "COCOA POLVO": "COCOA NATURAL",
+  "COCOA NEGRA": "COCOA ALCALINA", "COCOA ALCALINIZADA": "COCOA ALCALINA",
+  "DUTCH COCOA": "COCOA ALCALINA", "BLACK COCOA": "COCOA ALCALINA",
+  "FRESA": "SABOR FRESA", "STRAWBERRY": "SABOR FRESA", "J015": "SABOR FRESA",
+  "CHOCOLATE": "SABOR CHOCOLATE", "GSF": "SABOR CHOCOLATE",
+  "ALLURA": "ROJO ALLURA", "ROJO 40": "ROJO ALLURA",
+  "ROJO NO 40": "ROJO ALLURA", "RED 40": "ROJO ALLURA",
+  "ALLURA RED": "ROJO ALLURA", "COLOR ROJO": "ROJO ALLURA",
+  "PECTIN": "PECTINA", "PECTINA HM": "PECTINA", "PECTINA LM": "PECTINA",
+  "PECTINA CITRICA": "PECTINA", "PECTINA DE MANZANA": "PECTINA",
+  "PECTINA DE CITRICOS": "PECTINA", "CITRIC ACID": "ACIDO CITRICO",
+  "ACIDO CITRICO ANHIDRO": "ACIDO CITRICO", "ACIDO CITRICO MONOHIDRATO": "ACIDO CITRICO",
+  "CITRATO": "ACIDO CITRICO", "E330": "ACIDO CITRICO",
+  "XYLITOL": "XILITOL", "AZUCAR DE ABEDUL": "XILITOL",
+  "BIRCH SUGAR": "XILITOL", "HKXC10": "XILITOL",
 };
 
+// ============================================================
+// HELPERS
+// ============================================================
 function normalize(text) {
   return text
     .toUpperCase()
     .trim()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove accents
-    .replace(/[^A-Z0-9\s.]/g, " ")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9\s.\-_]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function findProductoDemo(text) {
+  const normalized = normalize(text);
+  if (!normalized || normalized === "NO_IDENTIFICADO") return null;
+  if (PRODUCTOS_DEMO[normalized]) return { key: normalized, ...PRODUCTOS_DEMO[normalized] };
+  if (PRODUCTOS_ALIASES[normalized]) {
+    const key = PRODUCTOS_ALIASES[normalized];
+    return { key, ...PRODUCTOS_DEMO[key] };
+  }
+  for (const alias of Object.keys(PRODUCTOS_ALIASES)) {
+    if (normalized.includes(alias)) {
+      const key = PRODUCTOS_ALIASES[alias];
+      return { key, ...PRODUCTOS_DEMO[key] };
+    }
+  }
+  return null;
 }
 
 function findMateriaPrima(text) {
   const normalized = normalize(text);
   if (!normalized || normalized === "NO_IDENTIFICADO") return null;
-
-  // Direct match on keys
   if (MATERIAS_PRIMAS_DB[normalized]) return { key: normalized, ...MATERIAS_PRIMAS_DB[normalized] };
-
-  // Check aliases
   if (ALIASES[normalized]) {
     const key = ALIASES[normalized];
     return { key, ...MATERIAS_PRIMAS_DB[key] };
   }
-
-  // Partial match against keys
   for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       return { key, ...MATERIAS_PRIMAS_DB[key] };
     }
   }
-
-  // Partial match against aliases
   for (const alias of Object.keys(ALIASES)) {
     if (normalized.includes(alias) || alias.includes(normalized)) {
       const key = ALIASES[alias];
       return { key, ...MATERIAS_PRIMAS_DB[key] };
     }
   }
-
-  // Word-level match
   const words = normalized.split(/\s+/).filter((w) => w.length > 3);
   for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
     for (const word of words) {
       if (key.includes(word)) return { key, ...MATERIAS_PRIMAS_DB[key] };
     }
   }
-  for (const alias of Object.keys(ALIASES)) {
-    for (const word of words) {
-      if (alias.includes(word) && word.length > 4) {
-        const key = ALIASES[alias];
-        return { key, ...MATERIAS_PRIMAS_DB[key] };
-      }
-    }
-  }
   return null;
+}
+
+// Enviar lead a Google Sheets (con fallback a localStorage)
+async function saveLead(leadData) {
+  const payload = {
+    timestamp: new Date().toISOString(),
+    ...leadData,
+  };
+
+  // Guardar SIEMPRE en localStorage como respaldo
+  try {
+    const existing = JSON.parse(localStorage.getItem("fm_leads_backup") || "[]");
+    existing.push(payload);
+    localStorage.setItem("fm_leads_backup", JSON.stringify(existing));
+  } catch (e) { /* ignore */ }
+
+  // Enviar a Google Sheets
+  if (!GOOGLE_SHEETS_ENDPOINT || GOOGLE_SHEETS_ENDPOINT.includes("REEMPLAZAR_AQUI")) {
+    console.warn("Google Sheets endpoint no configurado. Lead guardado solo localmente.");
+    return { ok: false, reason: "endpoint_not_configured" };
+  }
+
+  try {
+    // Apps Script no soporta CORS preflight, usamos 'no-cors' con text/plain
+    await fetch(GOOGLE_SHEETS_ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    return { ok: true };
+  } catch (err) {
+    console.error("Error enviando lead:", err);
+    return { ok: false, reason: "network_error" };
+  }
+}
+
+// Email validation
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// Phone validation (acepta dígitos, espacios, +, -, (, ))
+function isValidPhone(phone) {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length >= 7 && digits.length <= 15;
 }
 
 // ============================================================
@@ -790,7 +927,6 @@ function ParticleBackground() {
         ctx.fillStyle = this.color;
         ctx.globalAlpha = Math.max(0, this.opacity);
         ctx.fill();
-        // Glow
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * 3, 0, Math.PI * 2);
         const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 3);
@@ -847,7 +983,7 @@ function ParticleBackground() {
   );
 }
 
-const FM_LOGO = "data:image/png;base64,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";
+const FM_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABQCAYAAABcbTqwAAAl+0lEQVR42u19eXgdZ3nv7/u+mTMzZ9O+W7a8ypETb4njxCSRswAxAQK3lSENKSmEABecW572SaGlV9bDLYTe0iaU5pZcoI0vIY3VkiZkc2KMld3BibdY3hd5kWTJlqWjc85s33L/mDNHi+2Q0EBpNO/zfJZ8NGfOzHe+37zv790+IJJIIokkkkgiiSSSSCKJJJJIIokkkkh+14VEU/Dbne/29nbS3d1NBgYGinNfXV2tWlpa1PgDL3RMR0eHAqCiqYzkPQGItrY21traqrW3t9N366Tt7e20tbVVa2trY9FDLtIg/+XmtLW1la1cuVJ2dHTI8X+49dZb077vTyeEzAbQRIiappSqBlCqFBIAtMKhnBDkAAwTQgaUIicAHFVKHdJ1/dhDDz2UmQyYzZs3066uLhFplwggv5PS3t5Ou7u7SWdnpwhfa2trq2KMXU6IukZKtZwQNAOo1TQNhIxNvVJqws/wb5OP4ZwDQL9S2Ecp2aIUeV4I8VpnZ+fguM9kBVNMRt9KBJD/dGlra2Pr16+XhBAFAJ/61KeqOeerAPlxAFcxxioopZBSFgeAyU/6C30Pk49hlFKEQ0oJIcQZAC8C9FFN057+8Y9/PFAAFFm9ejUdD9hIIoD8VjUGAIRP6k984hMrKMVnlVI367peET7xpZSSECILc00nz/l4LXFehCh1PtDI4E+KUkppqJF83z9DCHlMSvzwkUceefl81xlJBJDfBvEuPplvuWX1BwHyJwDer2kafN+HUip8ak8ABCGkAAgCpSSUUhBCQCkJKcc7pwgoJSCEgjFWeB8FoKCUmgyaEDAghDBd10NT7DlAfefhh9dvCDVdZ2enjDhKBJDfqDkVAuPWW1dfAWhrKSUfBADf98OFSsk4tUBp4LwSQsD3Pfg+h1IKmqbBNE1YlgXLsmAYBhhjxWNd14Vt27BtG47jgHMOQgh0XYOux4rHFky2UNsUr0HXdRL8XW0A+NqHHlr/6uR7iCQCyLsmra2tWldXF29rayu3LOMbAL7IGCOe54X8g43XFJRScM7hOA6UUkgmk6ivr0dT00w0NTWhvr4eFRWVSKVSME0T44l7aJ45joPR0VGcOXMavb29OHr0KI4ePYLe3l5ks1kQQorvlVJO1ixCKUVisRgVQigA/8e23b/s7OwcCu8l+lYjgPyHRSlF1q5dSzo6OuTtt9/2IUrZ9zRNm+m6rgIgCQELplGBEApCCFzXhed5SKfTmD//IixduhQXXdSCurq6d+Wa+vr6sGdPN9544w3s3bsHmcwIYjEDhmEUTLCQ8igoBQGAGoZBOOdHpBRf/ud//n9Ptbe307Vr16rQuRBJBJBfi4iH5PaOOz7zTcbY14Knu+CEFGMWBc5A4boOfN9HY+N0XHXVVVi+fDmqq2smEG4hxARy/nZJevgz5CShDAycwpYtW/Diiy/i+PFj0HUdhmEWTC817jzgmsY0QgiEEN/6wQ9+9OeT7zGSCCDvmG+0tbWVlJeXPxSLxW5yHCckwzS0ZiilEILDtm1Mnz4DN974QSxfvhyGYaDATaCUmkDQw/UdPO0xCTBjrwe/A5ROjIeEI+AkOgDAdV1s2bIFzzyzAceO9cCyLDCmFTlK4bwSAEzTpJ7nPTE0NPSpzs7OkYiXRAD5tcDx+c//YYOmpZ7QdX2x67o+oPTQdAm1Rj6fRzKZwKpVq3DttdfBNE34vg8hRJGgE0IgpQIhwWJXKljoeoyBFKgL536BdCtoGgOlDEoJEELgebwIICFkAWzBeZVSkFKCMQZd1+E4DjZt2oRnnnka2WwO8Xh8nDYpXrtvGIbu+/720dHRD69bt+5kBJIIIO8IHHfeeed0y4ptZEyb67ouJ4RqockSLtZ8PodLLlmE1as/gbq6OriuWwTGeDNISgXT1OBzCc/l0DQKTdNwcP8pdL/Zh5GzNuqnlWD5iplIpiycHhzFqy8dRkVlArX1JZg9pwquG3Bqy4oBUPA8XgDdGLEPgWIYBvr6+rB+/SPYtWsH4vHEBDOt4GbmhmFoQvADtu3d8MADDxyLQHKusGgKJnKO+++/X37hC1+ojsetTbGYPs/zfK5pmhYuek3Tiovxox/9GP7gD26FZVmwbfscMwhQEELBMDTs2d2PXdtPYP/eflhxHWXlcQguMHQmj6cefxOfX3M1OBeIJ0z85d2Pob6hBJevaELHV59A6/XzYJoaMiM2fvT9l0AIUFGZBCEoeq9CzaKUguu6SKfTWL78Cui6jv3794ExVvSUMUbBGKNCCG4YRpWmsVWLFy/pXLduXba9vZ12dXVFxL0gNJqCMW3a3d1N1qxZYyQS8ccsy2zmXHBd1zXGGBhjiMV0KKUQi8Xwmc/cgQ996KZinCJcnEopUBqYQkIoEKIwmrHx/e+9gAWX1OHa9zejtNSCY7uoqy9B08xyMEZhmhoMU4Pnueg5MoSFSxpQVh5H78kMTg+OQtc1HOs5i53be2HnPXzj60/CsnRwLqCUQiIRmwAUx3Fg2zZuuunD+Oxn74BlWQAACDqd5ttvv43Vq1cTAGzv3r3sM5/5jLAsi3HOWQSO//+JABKkfeRgZsAFCBKVCAQEikIVgCDIz/Y2NjyTRRBARJSCJrPjOO66LizLgmEYxXMbhgHbtmHbNhzHKbqAdV2HrutFh+jL3vu1/v4OAGRn7N6/H4XmpKamhg4PD1MAGBgYIENDQ3Tx4sUUAAMA+pOf/IRfffXVHACOHj1KAcByXVcQQgRjjEa8JALI2yUKlmlYAZxLnB204XsCJaUWPF/g2BEPjCmUlpvIuxJKEbiOgGloKK8w4XsKvb1jKC2zUFufgudKjI7auNAvEEvomDvfgu8L6Ay4cF4i7yqUVZioqDQwOuZi4LSDeKkOXVcwLAJdo7BdF7v2nMaJ/jHU1FgwYxRiNJaqIIQRpRwopUSJ1c0H03i+/9HefT2g2eL+jZFb/+kbfviXIBN7L0jvecF+9rL7lje98+lpe3v7BPNNCEFs2yYAJOdcRu0sIhPrgsKahsQzOZ2dCwGGNgB0YGCQ6Pp03LSqAS8/dxK1jXP4fzcuhxXTcLR3DD/+/uOIxwy0XlcLAcDQGc70u3jh173wfQXf45jdkkLrjbV45kfvIp7QkR12cM01M3DXn70fnE9DScrCPV/8DTpunwfTopBKwfM4uvecg2nq6OnNQymBdLkBHsl/SwfHebHMfzNAB/wYi5K1MGRu1KqZl6ICdq9oFc2nQfh+wA1bv5ZyEpw00G56DwAMBL5njEEpCSE4lJL+0SO5w74H7N8/iAuDDhJlBhJlOj66bj4eXX8Aze9P4eEHj+L3PrYAZsLE7G/dwO2bm5BqMrFnVz/uufdmTGtIIJ8XSCWBQp5GuJoQNUNAa6X+xKpkOvVQfFqyZezpfQ8VLQpUbpgGRStxJL0wTzKwBn9bWVMCKDg0gCNVCmIYWFOpDQTYkw3wKWBKICmZSp7+Op2yTAklILo7wzVwHQ/zr8jjbF4ZRdfk2VTk6dpKzv8K4F7lI6KbVtoOptKkLQk3yEm08Vfc8VKMlbWtTUtPSiNTQ8wgaIyAcBwbXjT4WCCmqRgmaUe5BfYhgJpYa2X05BVrqkdo3KrkrSULMfwUjcDbZRZGxBohSE0EYDvc8Hju+RIkRRZ7tQ3VTAvFEipuvr8baBxOIxQXMOLdsHwrUklTvIs7Lxbcv+ihQ4cQjUYRiURADocDjLG9pmlqANiTTz5J29vbZRgktG07VglNHQTQXkLmTjK1WL2RR2t9NeKlSdRWl+ChH7yEXKaA0mLF9994FNCl/Mvf+IK6+9TS0jJiYXm5Xj5pUVcXgshl3UQjcVR9JOdtKfQO7AzkUL6/8nKvuAdvVKbn+znIkAOPLvc1Y9z7AOPHxnVKK1XS1RXLY7TbVeq7CRSc4iH5IpRTBy9JZIH+iguOzMnNXHvT4uy5xRMmJ4Tg5z//ucxms2RoaIimrSwgkj9TzlFn7rsAEMSvNZNz4lZF2vJUlT9/Q+gxqlKpcgwOZjA8aGCa5JsxIs4DBd9NW0G6dPmbpmDuU38Dz74/zUvL+yWcuY3p6Z9X9JmJTLg7yJUjItKpe2vp/k+Aq6f9rJvw5l/MPSDfqU+wAAAABJRU5ErkJggg==";
 
 function Logo({ size = 80 }) {
   return (
@@ -906,14 +1042,14 @@ function WelcomeScreen({ onStart }) {
             fontFamily: "'Open Sans', sans-serif", fontSize: "18px",
             color: "#fff", fontWeight: 600, margin: "0 0 12px",
           }}>
-            Un ingrediente,<br/>decenas de posibilidades
+            Un producto,<br/>decenas de materias primas
           </h2>
           <p style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
             color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: 0,
           }}>
-            Escanea el rótulo de cualquier materia prima y descubre todos
-            los productos donde puede estar presente.
+            Escanea el hablador de cualquier producto y descubre todas
+            las materias primas F&M que lo componen.
           </p>
         </div>
 
@@ -938,10 +1074,49 @@ function WelcomeScreen({ onStart }) {
   );
 }
 
-function LeadCapture({ onSubmit, onSkip }) {
+// ============================================================
+// LEAD CAPTURE — Formulario OBLIGATORIO con validación
+// ============================================================
+function LeadCapture({ onSubmit }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
+  const [phone, setPhone] = useState("");
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const validate = () => {
+    const e = {};
+    if (!name.trim() || name.trim().length < 2) e.name = "Ingresa tu nombre";
+    if (!email.trim()) e.email = "Ingresa tu correo";
+    else if (!isValidEmail(email.trim())) e.email = "Formato de correo inválido";
+    if (!company.trim() || company.trim().length < 2) e.company = "Ingresa el nombre de tu empresa";
+    if (!phone.trim()) e.phone = "Ingresa tu teléfono";
+    else if (!isValidPhone(phone.trim())) e.phone = "Teléfono inválido (mín. 7 dígitos)";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      company: company.trim(),
+      phone: phone.trim(),
+    };
+    // Disparamos pero NO bloqueamos al usuario si el endpoint falla (queda en localStorage)
+    saveLead(payload).catch(() => {});
+    setTimeout(() => { onSubmit(payload); }, 600);
+  };
+
+  const fields = [
+    { key: "name", label: "Nombre completo *", value: name, setter: setName, placeholder: "Tu nombre", type: "text", autoComplete: "name" },
+    { key: "email", label: "Email *", value: email, setter: setEmail, placeholder: "correo@empresa.com", type: "email", autoComplete: "email" },
+    { key: "company", label: "Empresa *", value: company, setter: setCompany, placeholder: "Nombre de tu empresa", type: "text", autoComplete: "organization" },
+    { key: "phone", label: "Teléfono *", value: phone, setter: setPhone, placeholder: "+57 300 000 0000", type: "tel", autoComplete: "tel" },
+  ];
 
   return (
     <div style={{
@@ -951,10 +1126,10 @@ function LeadCapture({ onSubmit, onSkip }) {
     }}>
       <div style={{
         background: COLORS.cardBg, borderRadius: "24px",
-        padding: "36px 28px", maxWidth: "400px", width: "100%",
+        padding: "36px 28px", maxWidth: "420px", width: "100%",
         boxShadow: "0 10px 40px rgba(26,40,110,0.08)",
       }}>
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
           <Logo size={100} />
           <h2 style={{
             fontFamily: "'Playfair Display', Georgia, serif",
@@ -967,18 +1142,14 @@ function LeadCapture({ onSubmit, onSkip }) {
             fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
             color: COLORS.textLight, margin: 0, lineHeight: 1.5,
           }}>
-            Déjanos tus datos para enviarte más información sobre nuestros productos.
+            Cuéntanos quién eres para enviarte información personalizada sobre nuestros ingredientes.
           </p>
         </div>
 
-        {[
-          { label: "Nombre", value: name, setter: setName, placeholder: "Tu nombre", type: "text" },
-          { label: "Email", value: email, setter: setEmail, placeholder: "correo@empresa.com", type: "email" },
-          { label: "Empresa", value: company, setter: setCompany, placeholder: "Nombre de tu empresa", type: "text" },
-        ].map((field) => (
-          <div key={field.label} style={{ marginBottom: "16px" }}>
+        {fields.map((field) => (
+          <div key={field.key} style={{ marginBottom: "14px" }}>
             <label style={{
-              fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
+              fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
               color: COLORS.secondary, fontWeight: 600,
               textTransform: "uppercase", letterSpacing: "1px",
               display: "block", marginBottom: "6px",
@@ -986,44 +1157,54 @@ function LeadCapture({ onSubmit, onSkip }) {
             <input
               type={field.type}
               value={field.value}
-              onChange={(e) => field.setter(e.target.value)}
+              onChange={(e) => {
+                field.setter(e.target.value);
+                if (errors[field.key]) setErrors({ ...errors, [field.key]: null });
+              }}
               placeholder={field.placeholder}
+              autoComplete={field.autoComplete}
               style={{
-                width: "100%", padding: "12px 16px", border: `1.5px solid #e5e7eb`,
+                width: "100%", padding: "12px 16px",
+                border: `1.5px solid ${errors[field.key] ? "#ef4444" : "#e5e7eb"}`,
                 borderRadius: "12px", fontSize: "14px",
                 fontFamily: "'Open Sans', sans-serif", outline: "none",
                 transition: "border-color 0.2s", boxSizing: "border-box",
                 background: "#fafbfc",
               }}
-              onFocus={(e) => e.target.style.borderColor = COLORS.tertiary}
-              onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+              onFocus={(e) => { if (!errors[field.key]) e.target.style.borderColor = COLORS.tertiary; }}
+              onBlur={(e) => { if (!errors[field.key]) e.target.style.borderColor = "#e5e7eb"; }}
             />
+            {errors[field.key] && (
+              <div style={{
+                fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                color: "#ef4444", marginTop: "4px", paddingLeft: "4px",
+              }}>{errors[field.key]}</div>
+            )}
           </div>
         ))}
 
-        <button
-          onClick={() => onSubmit({ name, email, company })}
-          style={{
-            width: "100%", background: COLORS.gradient2, border: "none",
-            color: "#fff", padding: "14px", borderRadius: "12px",
-            fontSize: "15px", fontWeight: 700, fontFamily: "'Open Sans', sans-serif",
-            cursor: "pointer", marginTop: "8px",
-            boxShadow: "0 4px 15px rgba(255,113,45,0.3)",
-          }}
-        >
-          Continuar
-        </button>
+        <p style={{
+          fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+          color: COLORS.textLight, margin: "10px 0 12px", lineHeight: 1.4,
+          textAlign: "center",
+        }}>
+          Al continuar aceptas el tratamiento de tus datos para fines comerciales de Factores & Mercadeo S.A.
+        </p>
 
         <button
-          onClick={onSkip}
+          onClick={handleSubmit}
+          disabled={submitting}
           style={{
-            width: "100%", background: "none", border: "none",
-            color: COLORS.textLight, padding: "12px", fontSize: "13px",
-            fontFamily: "'Open Sans', sans-serif", cursor: "pointer",
-            marginTop: "4px", textDecoration: "underline",
+            width: "100%", background: submitting ? "#9ca3af" : COLORS.gradient2,
+            border: "none", color: "#fff", padding: "14px",
+            borderRadius: "12px", fontSize: "15px", fontWeight: 700,
+            fontFamily: "'Open Sans', sans-serif",
+            cursor: submitting ? "default" : "pointer",
+            boxShadow: submitting ? "none" : "0 4px 15px rgba(255,113,45,0.3)",
+            transition: "all 0.2s",
           }}
         >
-          Omitir por ahora
+          {submitting ? "Enviando..." : "Continuar →"}
         </button>
       </div>
     </div>
@@ -1085,7 +1266,6 @@ function CameraScreen({ onCapture, onSelectManual }) {
       minHeight: "100vh", display: "flex", flexDirection: "column",
       background: "#000", position: "relative",
     }}>
-      {/* Header */}
       <div style={{
         padding: "16px 20px", display: "flex", alignItems: "center",
         gap: "12px", background: "rgba(0,0,0,0.6)", zIndex: 2,
@@ -1096,15 +1276,14 @@ function CameraScreen({ onCapture, onSelectManual }) {
           <span style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "14px",
             color: "#fff", fontWeight: 600,
-          }}>Escanear Rótulo</span>
+          }}>Escanear hablador</span>
           <p style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
             color: "rgba(255,255,255,0.5)", margin: "2px 0 0",
-          }}>Apunta al nombre de la materia prima</p>
+          }}>Apunta al hablador del producto (Yogurt, Malteada o Mermelada)</p>
         </div>
       </div>
 
-      {/* Camera View */}
       <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {!error && (
           <video
@@ -1116,10 +1295,9 @@ function CameraScreen({ onCapture, onSelectManual }) {
           />
         )}
 
-        {/* Scan frame overlay */}
         <div style={{
           position: "relative", zIndex: 1,
-          width: "280px", height: "120px",
+          width: "280px", height: "200px",
           border: `3px solid ${COLORS.tertiary}`,
           borderRadius: "16px",
           boxShadow: `0 0 0 9999px rgba(0,0,0,0.4), 0 0 30px rgba(255,113,45,0.3)`,
@@ -1128,13 +1306,12 @@ function CameraScreen({ onCapture, onSelectManual }) {
             position: "absolute", bottom: "-36px", left: "50%",
             transform: "translateX(-50%)", whiteSpace: "nowrap",
             fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
-            color: "rgba(255,255,255,0.8)", textAlign: "center",
-            background: "rgba(0,0,0,0.5)", padding: "4px 12px",
+            color: "rgba(255,255,255,0.9)", textAlign: "center",
+            background: "rgba(0,0,0,0.6)", padding: "5px 14px",
             borderRadius: "8px",
           }}>
-            Centra el rótulo aquí
+            Centra el hablador completo
           </div>
-          {/* Scanning line animation */}
           <div style={{
             position: "absolute", left: "8px", right: "8px", height: "2px",
             background: COLORS.tertiary, borderRadius: "2px",
@@ -1156,7 +1333,6 @@ function CameraScreen({ onCapture, onSelectManual }) {
         <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
 
-      {/* Bottom Controls */}
       <div style={{
         padding: "20px 24px 36px", display: "flex",
         alignItems: "center", justifyContent: "center", gap: "20px",
@@ -1212,10 +1388,15 @@ function CameraScreen({ onCapture, onSelectManual }) {
   );
 }
 
-function ManualSelect({ onSelect, onBack }) {
+// ============================================================
+// MANUAL SELECT — Ahora con tabs: Productos demo + Materias primas
+// ============================================================
+function ManualSelect({ onSelectProducto, onSelectMateria, onBack }) {
+  const [tab, setTab] = useState("productos"); // 'productos' | 'materias'
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState("Todos");
 
+  const productosKeys = Object.keys(PRODUCTOS_DEMO);
   const allKeys = Object.keys(MATERIAS_PRIMAS_DB);
   const keys = allKeys.filter((k) => {
     const item = MATERIAS_PRIMAS_DB[k];
@@ -1240,7 +1421,7 @@ function ManualSelect({ onSelect, onBack }) {
       minHeight: "100vh", background: COLORS.bg, padding: "0 0 40px",
     }}>
       <div style={{
-        background: COLORS.gradient1, padding: "20px 20px 24px",
+        background: COLORS.gradient1, padding: "20px 20px 20px",
         borderRadius: "0 0 28px 28px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
@@ -1253,114 +1434,198 @@ function ManualSelect({ onSelect, onBack }) {
           <span style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "16px",
             color: "#fff", fontWeight: 600,
-          }}>Selección Manual</span>
+          }}>Selección manual</span>
         </div>
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar materia prima..."
-          style={{
-            width: "100%", padding: "14px 18px", borderRadius: "14px",
-            border: "none", fontSize: "14px", fontFamily: "'Open Sans', sans-serif",
-            outline: "none", boxSizing: "border-box", marginBottom: "12px",
-            background: "rgba(255,255,255,0.95)",
-          }}
-        />
-        {/* Filter chips */}
-        <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setProductFilter(f.id)}
+
+        {/* Tabs */}
+        <div style={{
+          display: "flex", background: "rgba(255,255,255,0.1)",
+          borderRadius: "12px", padding: "4px", gap: "4px",
+        }}>
+          <button
+            onClick={() => setTab("productos")}
+            style={{
+              flex: 1, padding: "10px", borderRadius: "9px", border: "none",
+              fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+              fontWeight: 700, cursor: "pointer", transition: "all 0.2s",
+              background: tab === "productos" ? "#fff" : "transparent",
+              color: tab === "productos" ? COLORS.secondary : "#fff",
+            }}
+          >
+            📦 Productos demo
+          </button>
+          <button
+            onClick={() => setTab("materias")}
+            style={{
+              flex: 1, padding: "10px", borderRadius: "9px", border: "none",
+              fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+              fontWeight: 700, cursor: "pointer", transition: "all 0.2s",
+              background: tab === "materias" ? "#fff" : "transparent",
+              color: tab === "materias" ? COLORS.secondary : "#fff",
+            }}
+          >
+            🧪 Materias primas
+          </button>
+        </div>
+
+        {tab === "materias" && (
+          <>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar materia prima..."
               style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                padding: "8px 14px", borderRadius: "20px", border: "none",
-                fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
-                fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-                transition: "all 0.2s",
-                background: productFilter === f.id ? COLORS.gradient2 : "rgba(255,255,255,0.15)",
-                color: "#fff",
-                boxShadow: productFilter === f.id ? "0 4px 12px rgba(255,113,45,0.4)" : "none",
+                width: "100%", padding: "14px 18px", borderRadius: "14px",
+                border: "none", fontSize: "14px", fontFamily: "'Open Sans', sans-serif",
+                outline: "none", boxSizing: "border-box", margin: "12px 0",
+                background: "rgba(255,255,255,0.95)",
               }}
-            >
-              <span>{f.icon}</span>
-              <span>{f.label}</span>
-              <span style={{
-                background: "rgba(255,255,255,0.25)", padding: "1px 7px",
-                borderRadius: "10px", fontSize: "10px",
-              }}>{f.count}</span>
-            </button>
-          ))}
-        </div>
+            />
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
+              {filters.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setProductFilter(f.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    padding: "8px 14px", borderRadius: "20px", border: "none",
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
+                    fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+                    transition: "all 0.2s",
+                    background: productFilter === f.id ? COLORS.gradient2 : "rgba(255,255,255,0.15)",
+                    color: "#fff",
+                    boxShadow: productFilter === f.id ? "0 4px 12px rgba(255,113,45,0.4)" : "none",
+                  }}
+                >
+                  <span>{f.icon}</span>
+                  <span>{f.label}</span>
+                  <span style={{
+                    background: "rgba(255,255,255,0.25)", padding: "1px 7px",
+                    borderRadius: "10px", fontSize: "10px",
+                  }}>{f.count}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {keys.length === 0 && (
-        <div style={{
-          padding: "40px 20px", textAlign: "center",
-          fontFamily: "'Open Sans', sans-serif", color: COLORS.textLight,
-        }}>
-          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔍</div>
-          <div style={{ fontSize: "14px" }}>No se encontraron resultados</div>
+      {/* CONTENIDO: Productos */}
+      {tab === "productos" && (
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "14px" }}>
+          {productosKeys.map((key, i) => {
+            const prod = PRODUCTOS_DEMO[key];
+            const totalMaterias = prod.grupos.reduce((acc, g) => acc + g.materiasPrimas.length, 0);
+            return (
+              <button
+                key={key}
+                onClick={() => onSelectProducto(key)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "16px",
+                  background: COLORS.cardBg, border: "none", padding: "18px",
+                  borderRadius: "18px", cursor: "pointer", textAlign: "left",
+                  boxShadow: "0 4px 14px rgba(26,40,110,0.08)",
+                  transition: "all 0.2s",
+                  borderLeft: `5px solid ${prod.colorAcento}`,
+                  animation: "slideUp 0.4s ease forwards",
+                  animationDelay: `${i * 0.08}s`,
+                  opacity: 0,
+                }}
+              >
+                <span style={{ fontSize: "44px", flexShrink: 0 }}>{prod.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: "20px", color: prod.colorPrimario, fontWeight: 700,
+                    lineHeight: 1.1,
+                  }}>{prod.titulo}</div>
+                  <div style={{
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+                    color: prod.colorAcento, fontWeight: 600, marginTop: "2px",
+                  }}>{prod.subtitulo}</div>
+                  <div style={{
+                    fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                    color: COLORS.textLight, marginTop: "6px",
+                  }}>{totalMaterias} materias primas · {prod.grupos.length} grupos funcionales</div>
+                </div>
+                <span style={{ color: COLORS.tertiary, fontSize: "20px", fontWeight: 700 }}>→</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
-      <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
-        {keys.map((key, i) => {
-          const item = MATERIAS_PRIMAS_DB[key];
-          return (
-            <button
-              key={key}
-              onClick={() => onSelect(key)}
-              style={{
-                display: "flex", alignItems: "center", gap: "14px",
-                background: COLORS.cardBg, border: "none", padding: "14px 16px",
-                borderRadius: "16px", cursor: "pointer", textAlign: "left",
-                boxShadow: "0 2px 8px rgba(26,40,110,0.06)",
-                transition: "all 0.2s",
-                animation: `slideUp 0.4s ease forwards`,
-                animationDelay: `${Math.min(i * 0.03, 0.5)}s`,
-                opacity: 0,
-              }}
-            >
-              <span style={{ fontSize: "26px", flexShrink: 0 }}>{item.icon}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
-                  color: COLORS.secondary, fontWeight: 700,
-                }}>{key}</div>
-                <div style={{
-                  fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
-                  color: COLORS.textLight, marginTop: "2px",
-                }}>{item.categoria}</div>
-              </div>
-              <div style={{ display: "flex", gap: "4px", marginRight: "4px" }}>
-                {item.enYogur && (
-                  <span style={{
-                    fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
-                    background: "rgba(26,40,110,0.1)", color: COLORS.secondary,
-                    fontWeight: 700,
-                  }}>🥛</span>
-                )}
-                {item.enShake && (
-                  <span style={{
-                    fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
-                    background: "rgba(255,113,45,0.1)", color: COLORS.tertiary,
-                    fontWeight: 700,
-                  }}>💪</span>
-                )}
-                {item.enMermelada && (
-                  <span style={{
-                    fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
-                    background: "rgba(233,30,99,0.1)", color: "#e91e63",
-                    fontWeight: 700,
-                  }}>🍓</span>
-                )}
-              </div>
-              <span style={{ color: COLORS.tertiary, fontSize: "16px" }}>→</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* CONTENIDO: Materias primas */}
+      {tab === "materias" && (
+        <>
+          {keys.length === 0 && (
+            <div style={{
+              padding: "40px 20px", textAlign: "center",
+              fontFamily: "'Open Sans', sans-serif", color: COLORS.textLight,
+            }}>
+              <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔍</div>
+              <div style={{ fontSize: "14px" }}>No se encontraron resultados</div>
+            </div>
+          )}
+          <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            {keys.map((key, i) => {
+              const item = MATERIAS_PRIMAS_DB[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => onSelectMateria(key)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "14px",
+                    background: COLORS.cardBg, border: "none", padding: "14px 16px",
+                    borderRadius: "16px", cursor: "pointer", textAlign: "left",
+                    boxShadow: "0 2px 8px rgba(26,40,110,0.06)",
+                    transition: "all 0.2s",
+                    animation: `slideUp 0.4s ease forwards`,
+                    animationDelay: `${Math.min(i * 0.03, 0.5)}s`,
+                    opacity: 0,
+                  }}
+                >
+                  <span style={{ fontSize: "26px", flexShrink: 0 }}>{item.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+                      color: COLORS.secondary, fontWeight: 700,
+                    }}>{key}</div>
+                    <div style={{
+                      fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+                      color: COLORS.textLight, marginTop: "2px",
+                    }}>{item.categoria}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: "4px", marginRight: "4px" }}>
+                    {item.enYogur && (
+                      <span style={{
+                        fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
+                        background: "rgba(26,40,110,0.1)", color: COLORS.secondary,
+                        fontWeight: 700,
+                      }}>🥛</span>
+                    )}
+                    {item.enShake && (
+                      <span style={{
+                        fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
+                        background: "rgba(255,113,45,0.1)", color: COLORS.tertiary,
+                        fontWeight: 700,
+                      }}>💪</span>
+                    )}
+                    {item.enMermelada && (
+                      <span style={{
+                        fontSize: "9px", padding: "2px 6px", borderRadius: "8px",
+                        background: "rgba(233,30,99,0.1)", color: "#e91e63",
+                        fontWeight: 700,
+                      }}>🍓</span>
+                    )}
+                  </div>
+                  <span style={{ color: COLORS.tertiary, fontSize: "16px" }}>→</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <style>{`
         @keyframes slideUp {
@@ -1400,11 +1665,11 @@ function ProcessingScreen({ image }) {
       <p style={{
         fontFamily: "'Open Sans', sans-serif", fontSize: "16px",
         color: "#fff", fontWeight: 600, margin: "0 0 8px",
-      }}>Analizando rótulo...</p>
+      }}>Analizando imagen...</p>
       <p style={{
         fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
         color: "rgba(255,255,255,0.5)",
-      }}>Identificando materia prima con IA</p>
+      }}>Identificando producto con IA</p>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse {
@@ -1416,7 +1681,226 @@ function ProcessingScreen({ image }) {
   );
 }
 
-function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
+// ============================================================
+// PRODUCTO DEMO SCREEN — Nueva pantalla principal
+// ============================================================
+function ProductoDemoScreen({ productoKey, onScanAgain, onContact, onSelectMateria }) {
+  const data = PRODUCTOS_DEMO[productoKey];
+  if (!data) return null;
+
+  const totalMaterias = data.grupos.reduce((acc, g) => acc + g.materiasPrimas.length, 0);
+
+  return (
+    <div style={{ minHeight: "100vh", background: COLORS.bg, paddingBottom: "100px" }}>
+      {/* Hero Header con color del producto */}
+      <div style={{
+        background: `linear-gradient(135deg, ${data.colorPrimario} 0%, ${data.colorAcento} 100%)`,
+        padding: "24px 20px 32px",
+        borderRadius: "0 0 32px 32px", position: "relative", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", top: "-40px", right: "-40px", width: "200px",
+          height: "200px", borderRadius: "50%",
+          background: "rgba(255,255,255,0.08)",
+        }} />
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px", position: "relative", zIndex: 1 }}>
+          <Logo size={52} />
+          <span style={{
+            fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+            color: "rgba(255,255,255,0.7)", letterSpacing: "2px",
+            textTransform: "uppercase",
+          }}>Factores & Mercadeo</span>
+        </div>
+
+        <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "8px 0 16px" }}>
+          <div style={{ fontSize: "64px", marginBottom: "8px" }}>{data.icon}</div>
+          <h1 style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: "clamp(36px, 9vw, 52px)", color: "#fff",
+            margin: "0", fontWeight: 700, lineHeight: 1,
+            textShadow: "0 2px 12px rgba(0,0,0,0.15)",
+          }}>{data.titulo}</h1>
+          <div style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: "clamp(20px, 5vw, 28px)",
+            color: "rgba(255,255,255,0.9)",
+            margin: "4px 0 0", fontWeight: 400, fontStyle: "italic",
+          }}>{data.subtitulo}</div>
+        </div>
+
+        <p style={{
+          fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+          color: "rgba(255,255,255,0.85)", margin: "16px 0 0", lineHeight: 1.5,
+          position: "relative", zIndex: 1, textAlign: "center",
+        }}>{data.descripcion}</p>
+
+        {/* Stats */}
+        <div style={{
+          display: "flex", justifyContent: "center", gap: "24px",
+          marginTop: "20px", position: "relative", zIndex: 1,
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "32px", color: "#fff", fontWeight: 700,
+            }}>{totalMaterias}</div>
+            <div style={{
+              fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+              color: "rgba(255,255,255,0.7)", textTransform: "uppercase",
+              letterSpacing: "1.5px",
+            }}>Materias primas</div>
+          </div>
+          <div style={{ width: "1px", background: "rgba(255,255,255,0.2)" }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "32px", color: "#fff", fontWeight: 700,
+            }}>{data.grupos.length}</div>
+            <div style={{
+              fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+              color: "rgba(255,255,255,0.7)", textTransform: "uppercase",
+              letterSpacing: "1.5px",
+            }}>Grupos funcionales</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Intro */}
+      <div style={{ padding: "20px 20px 4px" }}>
+        <h2 style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontSize: "20px", color: COLORS.secondary,
+          margin: "0 0 6px", fontWeight: 700,
+        }}>Composición F&M</h2>
+        <p style={{
+          fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+          color: COLORS.textLight, margin: 0, lineHeight: 1.5,
+        }}>
+          Toca cualquier materia prima para ver todos los productos donde se puede aplicar.
+        </p>
+      </div>
+
+      {/* Grupos */}
+      <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        {data.grupos.map((grupo, gi) => (
+          <div key={gi} style={{
+            background: COLORS.cardBg, borderRadius: "18px",
+            padding: "18px", boxShadow: "0 2px 10px rgba(26,40,110,0.06)",
+            animation: "slideUp 0.5s ease forwards",
+            animationDelay: `${gi * 0.08}s`,
+            opacity: 0,
+          }}>
+            {/* Header del grupo */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "14px" }}>
+              <div style={{
+                width: "42px", height: "42px", borderRadius: "12px",
+                background: `linear-gradient(135deg, ${data.colorPrimario}15 0%, ${data.colorAcento}25 100%)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "22px", flexShrink: 0,
+              }}>{grupo.icon}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{
+                  fontFamily: "'Open Sans', sans-serif", fontSize: "15px",
+                  color: COLORS.secondary, margin: "0 0 3px", fontWeight: 700,
+                }}>{grupo.titulo}</h3>
+                <p style={{
+                  fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
+                  color: COLORS.textLight, margin: 0, lineHeight: 1.4,
+                }}>{grupo.descripcion}</p>
+              </div>
+            </div>
+
+            {/* Materias primas del grupo */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {grupo.materiasPrimas.map((mpKey) => {
+                const mp = MATERIAS_PRIMAS_DB[mpKey];
+                if (!mp) return null;
+                return (
+                  <button
+                    key={mpKey}
+                    onClick={() => onSelectMateria(mpKey)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      background: "#f8f9fc", border: "none",
+                      padding: "12px 14px", borderRadius: "12px",
+                      cursor: "pointer", textAlign: "left", width: "100%",
+                      transition: "all 0.2s",
+                      borderLeft: `3px solid ${data.colorAcento}`,
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#eff1f7"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#f8f9fc"}
+                  >
+                    <span style={{ fontSize: "22px", flexShrink: 0 }}>{mp.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+                        color: COLORS.secondary, fontWeight: 700,
+                      }}>{mpKey}</div>
+                      <div style={{
+                        fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
+                        color: COLORS.textLight, marginTop: "2px",
+                        overflow: "hidden", textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>{mp.beneficio}</div>
+                    </div>
+                    <span style={{
+                      color: data.colorAcento, fontSize: "16px",
+                      fontWeight: 700, flexShrink: 0,
+                    }}>→</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Actions */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0,
+        padding: "16px 20px", display: "flex", gap: "10px",
+        background: "rgba(240,242,247,0.95)", backdropFilter: "blur(10px)",
+        borderTop: "1px solid rgba(26,40,110,0.06)",
+      }}>
+        <button
+          onClick={onScanAgain}
+          style={{
+            flex: 1, padding: "14px", borderRadius: "14px",
+            border: `2px solid ${COLORS.secondary}`, background: "transparent",
+            color: COLORS.secondary, fontSize: "13px", fontWeight: 700,
+            fontFamily: "'Open Sans', sans-serif", cursor: "pointer",
+          }}
+        >
+          📸 Escanear otro
+        </button>
+        <button
+          onClick={onContact}
+          style={{
+            flex: 1, padding: "14px", borderRadius: "14px",
+            border: "none", background: COLORS.gradient2,
+            color: "#fff", fontSize: "13px", fontWeight: 700,
+            fontFamily: "'Open Sans', sans-serif", cursor: "pointer",
+            boxShadow: "0 4px 15px rgba(255,113,45,0.3)",
+          }}
+        >
+          💬 Contáctanos
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ============================================================
+// RESULTS SCREEN — Materia prima individual (sin cambios mayores)
+// ============================================================
+function ResultsScreen({ materiaPrima, onScanAgain, onContact, onBack }) {
   const [filter, setFilter] = useState("Todos");
   const data = MATERIAS_PRIMAS_DB[materiaPrima];
   if (!data) return null;
@@ -1426,9 +1910,8 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, paddingBottom: "100px" }}>
-      {/* Hero Header */}
       <div style={{
-        background: COLORS.gradient1, padding: "24px 20px 32px",
+        background: COLORS.gradient1, padding: "20px 20px 32px",
         borderRadius: "0 0 32px 32px", position: "relative", overflow: "hidden",
       }}>
         <div style={{
@@ -1437,6 +1920,14 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
           background: "rgba(255,113,45,0.1)",
         }} />
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+          {onBack && (
+            <button onClick={onBack} style={{
+              background: "rgba(255,255,255,0.15)", border: "none",
+              color: "#fff", width: "36px", height: "36px", borderRadius: "50%",
+              fontSize: "18px", cursor: "pointer", display: "flex",
+              alignItems: "center", justifyContent: "center",
+            }}>←</button>
+          )}
           <Logo size={52} />
           <span style={{
             fontFamily: "'Open Sans', sans-serif", fontSize: "11px",
@@ -1470,7 +1961,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
             color: "rgba(255,255,255,0.6)", margin: "12px 0 0", lineHeight: 1.5,
           }}>{data.descripcion}</p>
 
-          {/* Demo Product Badges */}
           {(data.enYogur || data.enShake || data.enMermelada) && (
             <div style={{
               display: "flex", gap: "8px", marginTop: "14px", flexWrap: "wrap",
@@ -1522,7 +2012,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
         </div>
       </div>
 
-      {/* Beneficio clave */}
       {data.beneficio && (
         <div style={{ padding: "20px 20px 0" }}>
           <div style={{
@@ -1548,7 +2037,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
         </div>
       )}
 
-      {/* Products Count */}
       <div style={{ padding: "20px 20px 0" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
           <span style={{
@@ -1562,7 +2050,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
         </div>
       </div>
 
-      {/* Filter Tabs */}
       <div style={{
         display: "flex", gap: "8px", padding: "16px 20px",
         overflowX: "auto",
@@ -1586,7 +2073,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
         ))}
       </div>
 
-      {/* Product Cards */}
       <div style={{ padding: "4px 20px", display: "flex", flexDirection: "column", gap: "10px" }}>
         {filtered.map((prod, i) => {
           const typeColors = {
@@ -1643,7 +2129,6 @@ function ResultsScreen({ materiaPrima, onScanAgain, onContact }) {
         })}
       </div>
 
-      {/* Bottom Actions */}
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0,
         padding: "16px 20px", display: "flex", gap: "10px",
@@ -1714,7 +2199,7 @@ function ContactScreen({ onBack }) {
 
         {[
           { icon: "🌐", label: "www.factoresymercadeo.com", href: "https://www.factoresymercadeo.com" },
-          { icon: "📧", label: "info@factoresymercadeo.com", href: "mailto:info@factoresymercadeo.com" },
+          { icon: "📧", label: "marketing@factoresymercadeo.com", href: "mailto:marketing@factoresymercadeo.com" },
           { icon: "📅", label: "Agenda una reunión 1:1", href: "https://calendly.com/marketingfactoresymercadeo/30min" },
         ].map((item) => (
           <a
@@ -1760,9 +2245,12 @@ function ContactScreen({ onBack }) {
 export default function App() {
   const [screen, setScreen] = useState("welcome");
   const [capturedImage, setCapturedImage] = useState(null);
-  const [result, setResult] = useState(null);
+  const [resultProducto, setResultProducto] = useState(null);
+  const [resultMateria, setResultMateria] = useState(null);
+  const [previousScreen, setPreviousScreen] = useState(null);
   const [leadData, setLeadData] = useState(null);
 
+  // Reconocimiento con IA: primero busca PRODUCTO (hablador), si no, busca MATERIA PRIMA
   const handleCapture = async (imageDataUrl) => {
     setCapturedImage(imageDataUrl);
     setScreen("processing");
@@ -1786,17 +2274,22 @@ export default function App() {
               },
               {
                 type: "text",
-                text: `Identifica el nombre de la materia prima o ingrediente alimentario que aparece en este rótulo/etiqueta.
-Responde ÚNICAMENTE con el nombre del ingrediente en mayúsculas, sin explicación.
+                text: `Eres un asistente que identifica habladores y rótulos en una feria de Factores & Mercadeo S.A.
 
-Ingredientes oficiales del catálogo F&M:
-- Para Yogurt: ALMIDON NATIVO DE YUCA, ERITRITOL, MONK FRUIT, LECHE EN POLVO, CULTIVOS BAL, PROBIOTICOS L. CASEI, SACAROSA
-- Para Shake: PROTEINA WPC 80, COLAGENO HIDROLIZADO, ACIDO HIALURONICO, GOMA XANTHAN, VITAMINA D3 CWS, CITRATO DE MAGNESIO, EXTRACTO DE MALTA, DIOXIDO DE SILICIO, VITAMINA C, COMPLEJO VITAMINICO B, LACTATO FERROSO, AB-KEFIR 200B, NEOSWEET S, VAINILLINA, CREMA NO LACTEA, COCOA ALCALINA, COCOA NATURAL, SABOR FRESA, SABOR CHOCOLATE, ROJO ALLURA
-- Para Mermelada: PECTINA, ACIDO CITRICO, XILITOL
+PRIMERA PRIORIDAD — Identifica si la imagen muestra UN HABLADOR DE PRODUCTO de los siguientes 3 productos demo:
+- "YOGURT_VAINILLA" (hablador con título "Yogurt" y subtítulo "Vainilla", imagen de yogurt con flor de vainilla)
+- "MALTEADA_CHOCOLATE" (hablador con título cursivo "Malteada" y subtítulo "Chocolate", imagen de batido marrón con chocolate)
+- "MERMELADA_FRESA" (hablador con título cursivo "Mermelada" y subtítulo "Fresa", imagen de frasco con mermelada roja y fresas)
 
-Variantes aceptadas que también puedes responder: WPC 80, ISOCHILL, COLAGENO, HIALURONICO, XANTHAN, PERKASYL, BIOTINA, ACIDO FOLICO, AB-KEFIR, KEFIR, MALTA, VAINILLA, NON-DAIRY, COCOA, CACAO, FRESA, CHOCOLATE, ALLURA, ROJO 40, AZUCAR, ALMIDON, YUCA, BAL, L. CASEI, LACTOBACILLUS, PECTIN, CITRIC ACID, XYLITOL, BIRCH SUGAR, E330.
+Los 3 habladores comparten estas características: fondo blanco con triángulos geométricos (azul, beige, dorado), logo F&M ovalado a la izquierda, código QR "SCAN ME" arriba a la derecha, título grande del producto en color y tipografía decorativa.
 
-Si no puedes identificar un ingrediente claro o el rótulo no corresponde a un ingrediente conocido, responde: NO_IDENTIFICADO`,
+SI identificas claramente uno de los 3 habladores, responde ÚNICAMENTE con uno de estos códigos exactos: YOGURT_VAINILLA, MALTEADA_CHOCOLATE, MERMELADA_FRESA
+
+SEGUNDA PRIORIDAD — Si NO es un hablador de producto pero es un rótulo de materia prima individual, identifica la materia prima y responde con su nombre en mayúsculas (ej: PROTEINA WPC 80, ERITRITOL, PECTINA, etc.).
+
+Si no puedes identificar con claridad ni un hablador ni una materia prima, responde: NO_IDENTIFICADO
+
+Responde SOLO con el código/nombre, sin explicaciones.`,
               },
             ],
           }],
@@ -1805,42 +2298,67 @@ Si no puedes identificar un ingrediente claro o el rótulo no corresponde a un i
 
       const data = await response.json();
       const aiText = data.content?.[0]?.text?.trim() || "NO_IDENTIFICADO";
-      const match = findMateriaPrima(aiText);
+      console.log("AI Detected:", aiText);
 
-      if (match) {
-        setResult(match.key);
-        setScreen("results");
-      } else {
-        setResult(null);
-        setScreen("manual");
+      // Buscar primero producto demo
+      const producto = findProductoDemo(aiText);
+      if (producto) {
+        // Actualizar lead con producto escaneado
+        if (leadData && !leadData.productoEscaneado) {
+          saveLead({ ...leadData, productoEscaneado: producto.nombre, evento: "scan_producto" }).catch(() => {});
+        }
+        setResultProducto(producto.key);
+        setScreen("productoDemo");
+        return;
       }
+
+      // Si no, buscar materia prima
+      const materia = findMateriaPrima(aiText);
+      if (materia) {
+        if (leadData) {
+          saveLead({ ...leadData, materiaEscaneada: materia.key, evento: "scan_materia" }).catch(() => {});
+        }
+        setResultMateria(materia.key);
+        setPreviousScreen("camera");
+        setScreen("results");
+        return;
+      }
+
+      // Nada identificado → llevar a selección manual
+      setScreen("manual");
     } catch (err) {
       console.error("AI Error:", err);
       setScreen("manual");
     }
   };
 
-  const handleManualSelect = (key) => {
-    setResult(key);
+  const handleSelectProductoManual = (key) => {
+    if (leadData) {
+      saveLead({ ...leadData, productoEscaneado: PRODUCTOS_DEMO[key].nombre, evento: "manual_producto" }).catch(() => {});
+    }
+    setResultProducto(key);
+    setPreviousScreen("manual");
+    setScreen("productoDemo");
+  };
+
+  const handleSelectMateriaManual = (key) => {
+    if (leadData) {
+      saveLead({ ...leadData, materiaEscaneada: key, evento: "manual_materia" }).catch(() => {});
+    }
+    setResultMateria(key);
+    setPreviousScreen(screen);
     setScreen("results");
+  };
+
+  const handleLeadSubmit = (data) => {
+    setLeadData(data);
+    setScreen("camera");
   };
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-      <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Open Sans', sans-serif; overscroll-behavior: none; }
-        ::-webkit-scrollbar { width: 0; }
-      `}</style>
-
       {screen === "welcome" && <WelcomeScreen onStart={() => setScreen("lead")} />}
-      {screen === "lead" && (
-        <LeadCapture
-          onSubmit={(data) => { setLeadData(data); setScreen("camera"); }}
-          onSkip={() => setScreen("camera")}
-        />
-      )}
+      {screen === "lead" && <LeadCapture onSubmit={handleLeadSubmit} />}
       {screen === "camera" && (
         <CameraScreen
           onCapture={handleCapture}
@@ -1849,16 +2367,26 @@ Si no puedes identificar un ingrediente claro o el rótulo no corresponde a un i
       )}
       {screen === "manual" && (
         <ManualSelect
-          onSelect={handleManualSelect}
+          onSelectProducto={handleSelectProductoManual}
+          onSelectMateria={handleSelectMateriaManual}
           onBack={() => setScreen("camera")}
         />
       )}
       {screen === "processing" && <ProcessingScreen image={capturedImage} />}
-      {screen === "results" && result && (
-        <ResultsScreen
-          materiaPrima={result}
-          onScanAgain={() => { setResult(null); setScreen("camera"); }}
+      {screen === "productoDemo" && resultProducto && (
+        <ProductoDemoScreen
+          productoKey={resultProducto}
+          onScanAgain={() => { setResultProducto(null); setScreen("camera"); }}
           onContact={() => setScreen("contact")}
+          onSelectMateria={handleSelectMateriaManual}
+        />
+      )}
+      {screen === "results" && resultMateria && (
+        <ResultsScreen
+          materiaPrima={resultMateria}
+          onScanAgain={() => { setResultMateria(null); setScreen("camera"); }}
+          onContact={() => setScreen("contact")}
+          onBack={previousScreen === "productoDemo" ? (() => setScreen("productoDemo")) : (() => setScreen("manual"))}
         />
       )}
       {screen === "contact" && <ContactScreen onBack={() => setScreen("camera")} />}
