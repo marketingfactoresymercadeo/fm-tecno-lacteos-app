@@ -5,7 +5,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 // ============================================================
 // Pegar aquí la URL del Apps Script Web App (ver docs/SETUP_GOOGLE_SHEETS.md)
 // Mientras no se configure, la app guarda los leads en localStorage como respaldo.
-const GOOGLE_SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbx-pp8iE1jrEbwtppVJpDceO0PVo5BRDsrOD81AT7NxXY8eccm6kRPv9iWgVJzMgG9TJA/exec";
+const GOOGLE_SHEETS_ENDPOINT = "https://script.google.com/macros/s/REEMPLAZAR_AQUI/exec";
 
 // ============================================================
 // BASE DE DATOS DE PRODUCTOS DEMO (HABLADORES)
@@ -768,47 +768,29 @@ function normalize(text) {
     .trim();
 }
 
+// Solo acepta una de las 3 claves canónicas de hablador. Sin fuzzy matching.
+// La IA está instruida para responder con uno de estos 3 códigos exactos o NO_IDENTIFICADO.
+const PRODUCTOS_CODIGOS_VALIDOS = ["YOGURT_VAINILLA", "MALTEADA_CHOCOLATE", "MERMELADA_FRESA"];
+
 function findProductoDemo(text) {
-  const normalized = normalize(text);
-  if (!normalized || normalized === "NO_IDENTIFICADO") return null;
-  if (PRODUCTOS_DEMO[normalized]) return { key: normalized, ...PRODUCTOS_DEMO[normalized] };
-  if (PRODUCTOS_ALIASES[normalized]) {
-    const key = PRODUCTOS_ALIASES[normalized];
-    return { key, ...PRODUCTOS_DEMO[key] };
-  }
-  for (const alias of Object.keys(PRODUCTOS_ALIASES)) {
-    if (normalized.includes(alias)) {
-      const key = PRODUCTOS_ALIASES[alias];
-      return { key, ...PRODUCTOS_DEMO[key] };
-    }
+  if (!text) return null;
+  const normalized = text.toUpperCase().trim();
+  if (PRODUCTOS_CODIGOS_VALIDOS.includes(normalized) && PRODUCTOS_DEMO[normalized]) {
+    return { key: normalized, ...PRODUCTOS_DEMO[normalized] };
   }
   return null;
 }
 
+// Solo se usa cuando el usuario ELIGE una materia prima desde la pantalla de selección manual.
+// El reconocimiento por foto NUNCA cae aquí — la cámara solo identifica los 3 habladores.
 function findMateriaPrima(text) {
+  if (!text) return null;
   const normalized = normalize(text);
-  if (!normalized || normalized === "NO_IDENTIFICADO") return null;
+  if (!normalized) return null;
   if (MATERIAS_PRIMAS_DB[normalized]) return { key: normalized, ...MATERIAS_PRIMAS_DB[normalized] };
   if (ALIASES[normalized]) {
     const key = ALIASES[normalized];
     return { key, ...MATERIAS_PRIMAS_DB[key] };
-  }
-  for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return { key, ...MATERIAS_PRIMAS_DB[key] };
-    }
-  }
-  for (const alias of Object.keys(ALIASES)) {
-    if (normalized.includes(alias) || alias.includes(normalized)) {
-      const key = ALIASES[alias];
-      return { key, ...MATERIAS_PRIMAS_DB[key] };
-    }
-  }
-  const words = normalized.split(/\s+/).filter((w) => w.length > 3);
-  for (const key of Object.keys(MATERIAS_PRIMAS_DB)) {
-    for (const word of words) {
-      if (key.includes(word)) return { key, ...MATERIAS_PRIMAS_DB[key] };
-    }
   }
   return null;
 }
@@ -983,19 +965,73 @@ function ParticleBackground() {
   );
 }
 
-const FM_LOGO = "data:image/png;base64,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";
-
+// Logo SVG inline — siempre se renderiza, jamás depende de assets externos
 function Logo({ size = 80 }) {
   return (
-    <img
-      src={FM_LOGO}
-      alt="Factores & Mercadeo"
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 200 200"
+      xmlns="http://www.w3.org/2000/svg"
       style={{
-        width: size, height: size, objectFit: "contain",
         filter: "drop-shadow(0 2px 8px rgba(26,40,110,0.3))",
         flexShrink: 0,
       }}
-    />
+      aria-label="Factores & Mercadeo"
+    >
+      <defs>
+        <linearGradient id="fm-logo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#1a286e" />
+          <stop offset="100%" stopColor="#2d3a8c" />
+        </linearGradient>
+      </defs>
+      {/* Óvalo de fondo con gradiente */}
+      <ellipse cx="100" cy="100" rx="92" ry="62" fill="url(#fm-logo-bg)" />
+      {/* Arco decorativo superior naranja */}
+      <path
+        d="M 32 56 Q 100 36 168 56"
+        stroke="#ff712d"
+        strokeWidth="2.5"
+        fill="none"
+        opacity="0.85"
+        strokeLinecap="round"
+      />
+      {/* Letras F&M */}
+      <text
+        x="100"
+        y="124"
+        textAnchor="middle"
+        fontFamily="Georgia, 'Playfair Display', serif"
+        fontSize="62"
+        fontWeight="700"
+        fill="#ffffff"
+        letterSpacing="-1"
+      >
+        F<tspan fill="#ff712d" dx="1">&amp;</tspan><tspan dx="1">M</tspan>
+      </text>
+      {/* Tagline pequeño */}
+      <text
+        x="100"
+        y="148"
+        textAnchor="middle"
+        fontFamily="'Open Sans', Helvetica, Arial, sans-serif"
+        fontSize="8.5"
+        fontWeight="600"
+        fill="rgba(255,255,255,0.75)"
+        letterSpacing="2.5"
+      >
+        FACTORES &amp; MERCADEO
+      </text>
+      {/* Arco decorativo inferior naranja */}
+      <path
+        d="M 32 146 Q 100 166 168 146"
+        stroke="#ff712d"
+        strokeWidth="2.5"
+        fill="none"
+        opacity="0.85"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -2240,6 +2276,123 @@ function ContactScreen({ onBack }) {
 }
 
 // ============================================================
+// NO RECONOCIDO SCREEN — feedback claro cuando la IA no identifica un hablador
+// ============================================================
+function NoReconocidoScreen({ image, onRetry, onManual, motivo }) {
+  return (
+    <div style={{
+      minHeight: "100vh", display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center", padding: "24px",
+      background: COLORS.gradient1, position: "relative",
+    }}>
+      <ParticleBackground />
+      <div style={{
+        background: "rgba(255,255,255,0.97)", borderRadius: "24px",
+        padding: "32px 24px", maxWidth: "400px", width: "100%",
+        textAlign: "center", position: "relative", zIndex: 1,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+      }}>
+        {/* Foto que tomó el usuario */}
+        {image && (
+          <div style={{
+            position: "relative", display: "inline-block",
+            marginBottom: "20px",
+          }}>
+            <img src={image} alt="captured" style={{
+              width: "180px", height: "130px", objectFit: "cover",
+              borderRadius: "14px", border: "3px solid #fbbf24",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+            }} />
+            <div style={{
+              position: "absolute", top: "-10px", right: "-10px",
+              background: "#f59e0b", width: "36px", height: "36px",
+              borderRadius: "50%", display: "flex",
+              alignItems: "center", justifyContent: "center",
+              fontSize: "20px",
+              boxShadow: "0 4px 12px rgba(245,158,11,0.4)",
+            }}>⚠️</div>
+          </div>
+        )}
+
+        <h2 style={{
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontSize: "22px", color: COLORS.secondary,
+          margin: "0 0 10px", fontWeight: 700, lineHeight: 1.2,
+        }}>
+          No pudimos identificar este hablador
+        </h2>
+
+        <p style={{
+          fontFamily: "'Open Sans', sans-serif", fontSize: "13px",
+          color: COLORS.textLight, margin: "0 0 20px", lineHeight: 1.55,
+        }}>
+          {motivo === "error"
+            ? "Hubo un problema procesando la imagen. Intenta de nuevo o explora los productos manualmente."
+            : "Apunta la cámara directamente al hablador de un producto F&M (Yogurt, Malteada o Mermelada) para que pueda reconocerlo."}
+        </p>
+
+        {/* Tips para mejor escaneo */}
+        <div style={{
+          background: "#f8f9fc", borderRadius: "14px",
+          padding: "14px 16px", textAlign: "left", marginBottom: "20px",
+          borderLeft: `3px solid ${COLORS.tertiary}`,
+        }}>
+          <div style={{
+            fontFamily: "'Open Sans', sans-serif", fontSize: "10px",
+            color: COLORS.tertiary, fontWeight: 700,
+            textTransform: "uppercase", letterSpacing: "1.5px",
+            marginBottom: "8px",
+          }}>💡 Tips para escanear bien</div>
+          {[
+            "Centra el hablador completo dentro del marco",
+            "Buena iluminación, sin sombras fuertes",
+            "Sostén el celular firme y derecho",
+            "Acércate hasta que ocupe casi toda la pantalla",
+          ].map((tip, i) => (
+            <div key={i} style={{
+              display: "flex", alignItems: "flex-start", gap: "8px",
+              fontFamily: "'Open Sans', sans-serif", fontSize: "12px",
+              color: COLORS.secondary, lineHeight: 1.5,
+              marginBottom: i < 3 ? "5px" : 0,
+            }}>
+              <span style={{ color: COLORS.tertiary, fontWeight: 700 }}>•</span>
+              <span>{tip}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onRetry}
+          style={{
+            width: "100%", padding: "14px", borderRadius: "14px",
+            border: "none", background: COLORS.gradient2,
+            color: "#fff", fontSize: "15px", fontWeight: 700,
+            fontFamily: "'Open Sans', sans-serif", cursor: "pointer",
+            marginBottom: "10px",
+            boxShadow: "0 4px 15px rgba(255,113,45,0.3)",
+          }}
+        >
+          📸 Intentar de nuevo
+        </button>
+
+        <button
+          onClick={onManual}
+          style={{
+            width: "100%", padding: "14px", borderRadius: "14px",
+            border: `2px solid ${COLORS.secondary}`,
+            background: "transparent",
+            color: COLORS.secondary, fontSize: "14px", fontWeight: 700,
+            fontFamily: "'Open Sans', sans-serif", cursor: "pointer",
+          }}
+        >
+          📋 Explorar productos manualmente
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // MAIN APP
 // ============================================================
 export default function App() {
@@ -2250,7 +2403,8 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState(null);
   const [leadData, setLeadData] = useState(null);
 
-  // Reconocimiento con IA: primero busca PRODUCTO (hablador), si no, busca MATERIA PRIMA
+  // Reconocimiento con IA — SOLO acepta uno de los 3 habladores oficiales del stand.
+  // Cualquier otra cosa va a la pantalla "No reconocido" con feedback claro al usuario.
   const handleCapture = async (imageDataUrl) => {
     setCapturedImage(imageDataUrl);
     setScreen("processing");
@@ -2264,7 +2418,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 200,
+          max_tokens: 30,
           messages: [{
             role: "user",
             content: [
@@ -2274,22 +2428,30 @@ export default function App() {
               },
               {
                 type: "text",
-                text: `Eres un asistente que identifica habladores y rótulos en una feria de Factores & Mercadeo S.A.
+                text: `Eres un clasificador estricto de habladores en el stand de Factores & Mercadeo S.A.
 
-PRIMERA PRIORIDAD — Identifica si la imagen muestra UN HABLADOR DE PRODUCTO de los siguientes 3 productos demo:
-- "YOGURT_VAINILLA" (hablador con título "Yogurt" y subtítulo "Vainilla", imagen de yogurt con flor de vainilla)
-- "MALTEADA_CHOCOLATE" (hablador con título cursivo "Malteada" y subtítulo "Chocolate", imagen de batido marrón con chocolate)
-- "MERMELADA_FRESA" (hablador con título cursivo "Mermelada" y subtítulo "Fresa", imagen de frasco con mermelada roja y fresas)
+Tu única tarea: identificar si la imagen muestra UNO de estos 3 habladores oficiales del stand y NINGÚN otro objeto.
 
-Los 3 habladores comparten estas características: fondo blanco con triángulos geométricos (azul, beige, dorado), logo F&M ovalado a la izquierda, código QR "SCAN ME" arriba a la derecha, título grande del producto en color y tipografía decorativa.
+LOS 3 HABLADORES OFICIALES (todos comparten: fondo blanco con triángulos geométricos azul/beige/dorado, logo F&M ovalado a la izquierda, código QR con texto "SCAN ME" en la esquina superior derecha, e ilustración del producto centrado):
 
-SI identificas claramente uno de los 3 habladores, responde ÚNICAMENTE con uno de estos códigos exactos: YOGURT_VAINILLA, MALTEADA_CHOCOLATE, MERMELADA_FRESA
+1. YOGURT_VAINILLA — título "Yogurt" en azul oscuro tipo serif + subtítulo "Vainilla" + ilustración de un vaso de yogurt blanco con una flor de vainilla.
 
-SEGUNDA PRIORIDAD — Si NO es un hablador de producto pero es un rótulo de materia prima individual, identifica la materia prima y responde con su nombre en mayúsculas (ej: PROTEINA WPC 80, ERITRITOL, PECTINA, etc.).
+2. MALTEADA_CHOCOLATE — título "Malteada" en cursiva marrón + subtítulo "Chocolate" + ilustración de un batido/milkshake de chocolate marrón.
 
-Si no puedes identificar con claridad ni un hablador ni una materia prima, responde: NO_IDENTIFICADO
+3. MERMELADA_FRESA — título "Mermelada" en cursiva roja/rosa + subtítulo "Fresa" + ilustración de un frasco con mermelada roja y fresas frescas.
 
-Responde SOLO con el código/nombre, sin explicaciones.`,
+REGLAS DE DECISIÓN — SÉ EXTREMADAMENTE ESTRICTO:
+- Solo responde con uno de los 3 códigos si ves CLARAMENTE el hablador completo y reconoces el título y la ilustración. Si tienes dudas, responde NO_IDENTIFICADO.
+- Si la imagen muestra cualquier otra cosa (un objeto cualquiera, una persona, un alimento real, un envase comercial, un papel suelto, una pantalla, un escritorio, etc.), responde NO_IDENTIFICADO.
+- Si la imagen está borrosa, mal iluminada, recortada, o no se ve el título del producto, responde NO_IDENTIFICADO.
+- Si solo ves el logo F&M pero no identificas cuál de los 3 productos, responde NO_IDENTIFICADO.
+- NO inventes ni adivines. Mejor responder NO_IDENTIFICADO que equivocarse.
+
+FORMATO DE RESPUESTA — responde EXACTAMENTE una de estas 4 palabras, sin nada más:
+YOGURT_VAINILLA
+MALTEADA_CHOCOLATE
+MERMELADA_FRESA
+NO_IDENTIFICADO`,
               },
             ],
           }],
@@ -2297,14 +2459,13 @@ Responde SOLO con el código/nombre, sin explicaciones.`,
       });
 
       const data = await response.json();
-      const aiText = data.content?.[0]?.text?.trim() || "NO_IDENTIFICADO";
+      const aiText = (data.content?.[0]?.text || "").trim().toUpperCase();
       console.log("AI Detected:", aiText);
 
-      // Buscar primero producto demo
+      // Solo aceptamos match exacto contra uno de los 3 códigos canónicos
       const producto = findProductoDemo(aiText);
       if (producto) {
-        // Actualizar lead con producto escaneado
-        if (leadData && !leadData.productoEscaneado) {
+        if (leadData) {
           saveLead({ ...leadData, productoEscaneado: producto.nombre, evento: "scan_producto" }).catch(() => {});
         }
         setResultProducto(producto.key);
@@ -2312,23 +2473,14 @@ Responde SOLO con el código/nombre, sin explicaciones.`,
         return;
       }
 
-      // Si no, buscar materia prima
-      const materia = findMateriaPrima(aiText);
-      if (materia) {
-        if (leadData) {
-          saveLead({ ...leadData, materiaEscaneada: materia.key, evento: "scan_materia" }).catch(() => {});
-        }
-        setResultMateria(materia.key);
-        setPreviousScreen("camera");
-        setScreen("results");
-        return;
+      // Cualquier otra cosa (incluido NO_IDENTIFICADO) → pantalla de no reconocido
+      if (leadData) {
+        saveLead({ ...leadData, evento: "scan_no_reconocido" }).catch(() => {});
       }
-
-      // Nada identificado → llevar a selección manual
-      setScreen("manual");
+      setScreen("noReconocido");
     } catch (err) {
       console.error("AI Error:", err);
-      setScreen("manual");
+      setScreen("noReconocido");
     }
   };
 
@@ -2373,6 +2525,13 @@ Responde SOLO con el código/nombre, sin explicaciones.`,
         />
       )}
       {screen === "processing" && <ProcessingScreen image={capturedImage} />}
+      {screen === "noReconocido" && (
+        <NoReconocidoScreen
+          image={capturedImage}
+          onRetry={() => { setCapturedImage(null); setScreen("camera"); }}
+          onManual={() => setScreen("manual")}
+        />
+      )}
       {screen === "productoDemo" && resultProducto && (
         <ProductoDemoScreen
           productoKey={resultProducto}
