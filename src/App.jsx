@@ -2355,8 +2355,9 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState(null);
   const [leadData, setLeadData] = useState(null);
 
-  // Reconocimiento con IA — SOLO acepta uno de los 3 habladores oficiales del stand.
-  // Cualquier otra cosa va a la pantalla "No reconocido" con feedback claro al usuario.
+  // Reconocimiento con IA — el frontend llama a /api/recognize (función serverless en Vercel),
+  // que es la que llama a Anthropic con la API key oculta del servidor.
+  // Llamar a api.anthropic.com directamente desde el navegador NO funciona por CORS.
   const handleCapture = async (imageDataUrl) => {
     setCapturedImage(imageDataUrl);
     setScreen("processing");
@@ -2365,56 +2366,25 @@ export default function App() {
       const base64Data = imageDataUrl.split(",")[1];
       const mediaType = imageDataUrl.split(";")[0].split(":")[1] || "image/jpeg";
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/recognize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 50,
-          messages: [{
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: { type: "base64", media_type: mediaType, data: base64Data },
-              },
-              {
-                type: "text",
-                text: `Identifica si la imagen muestra uno de estos 3 habladores publicitarios del stand de Factores & Mercadeo S.A.
-
-Todos los habladores tienen estos elementos en común:
-- Fondo blanco decorado con triángulos geométricos en azul oscuro, beige claro y dorado.
-- Logo ovalado plateado/azul de "F&M / Factores & Mercadeo S.A." en la zona izquierda.
-- Un código QR cuadrado con la etiqueta "SCAN ME" en la esquina superior derecha.
-- Título grande del producto en tipografía decorativa.
-
-LOS 3 HABLADORES — usa el título visible para distinguirlos:
-
-1. YOGURT_VAINILLA — el título dice "Yogurt" (tipografía serif en azul oscuro) con subtítulo "Vainilla" debajo. La ilustración muestra un vaso/copa con yogurt blanco cremoso y una flor de vainilla beige.
-
-2. MALTEADA_CHOCOLATE — el título dice "Malteada" en cursiva color marrón/café con subtítulo "Chocolate" debajo. La ilustración muestra un vaso/copa con un batido o milkshake marrón de chocolate (a veces con una mano sosteniéndolo), y puede incluir imágenes secundarias de una barra de chocolate o cocoa en polvo.
-
-3. MERMELADA_FRESA — el título dice "Mermelada" en cursiva color rojo o rosa con subtítulo "Fresa" debajo. La ilustración muestra un frasco de vidrio con mermelada roja y fresas frescas alrededor.
-
-INSTRUCCIONES:
-- Si reconoces el título del producto Y el aspecto general del hablador (no necesita estar perfectamente nítido, basta con que se distinga el título y la temática), responde con el código correspondiente.
-- Si la imagen muestra otra cosa completamente (un objeto cualquiera, una persona, una pantalla, comida real, un papel suelto, un envase comercial NO del hablador, etc.) responde NO_IDENTIFICADO.
-- Si la imagen está tan borrosa o tan recortada que no se puede leer el título ni reconocer la temática del hablador, responde NO_IDENTIFICADO.
-
-Responde EXACTAMENTE una sola palabra de estas opciones, sin nada más:
-YOGURT_VAINILLA
-MALTEADA_CHOCOLATE
-MERMELADA_FRESA
-NO_IDENTIFICADO`,
-              },
-            ],
-          }],
-        }),
+        body: JSON.stringify({ image: base64Data, mediaType }),
       });
 
+      if (!response.ok) {
+        const errInfo = await response.json().catch(() => ({}));
+        console.error("[F&M] Recognize endpoint error:", response.status, errInfo);
+        if (leadData) {
+          saveLead({ ...leadData, evento: "scan_error_backend", aiResponse: `HTTP ${response.status}` }).catch(() => {});
+        }
+        setScreen("noReconocido");
+        return;
+      }
+
       const data = await response.json();
-      const aiText = (data.content?.[0]?.text || "").trim().toUpperCase();
-      console.log("[F&M] AI Detected:", aiText);
+      const aiText = (data.result || "").trim().toUpperCase();
+      console.log("[F&M] AI Detected:", aiText, "| raw:", data.raw);
 
       // Solo aceptamos match exacto contra uno de los 3 códigos canónicos
       const producto = findProductoDemo(aiText);
@@ -2433,7 +2403,10 @@ NO_IDENTIFICADO`,
       }
       setScreen("noReconocido");
     } catch (err) {
-      console.error("[F&M] AI Error:", err);
+      console.error("[F&M] Recognize fetch error:", err);
+      if (leadData) {
+        saveLead({ ...leadData, evento: "scan_fetch_error", aiResponse: String(err?.message || err) }).catch(() => {});
+      }
       setScreen("noReconocido");
     }
   };
