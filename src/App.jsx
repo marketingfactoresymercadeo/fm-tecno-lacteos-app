@@ -5,7 +5,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 // ============================================================
 // Pegar aquí la URL del Apps Script Web App (ver docs/SETUP_GOOGLE_SHEETS.md)
 // Mientras no se configure, la app guarda los leads en localStorage como respaldo.
-const GOOGLE_SHEETS_ENDPOINT = "https://script.google.com/macros/s/REEMPLAZAR_AQUI/exec";
+const GOOGLE_SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbx-pp8iE1jrEbwtppVJpDceO0PVo5BRDsrOD81AT7NxXY8eccm6kRPv9iWgVJzMgG9TJA/exec";
 
 // ============================================================
 // BASE DE DATOS DE PRODUCTOS DEMO (HABLADORES)
