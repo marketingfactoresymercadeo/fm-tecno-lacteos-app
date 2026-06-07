@@ -19,21 +19,25 @@ export const config = {
   },
 };
 
-const PROMPT = `Identifica si la imagen muestra uno de estos 3 habladores publicitarios del stand de Factores & Mercadeo S.A.
+const PROMPT = `Identifica si la imagen muestra uno de estos 4 habladores publicitarios del stand de Factores & Mercadeo S.A.
 
-Todos los habladores tienen estos elementos en común:
+Todos los habladores comparten estos elementos:
 - Fondo blanco decorado con triángulos geométricos en azul oscuro, beige claro y dorado.
-- Logo ovalado plateado/azul de "F&M / Factores & Mercadeo S.A." en la zona izquierda.
-- Un código QR cuadrado con la etiqueta "SCAN ME" en la esquina superior derecha.
-- Título grande del producto en tipografía decorativa.
+- Logo ovalado plateado/azul de "F&M / Factores & Mercadeo S.A.".
+- Un elemento de escaneo en la zona superior derecha: puede ser un código QR con la etiqueta "SCAN ME", o el ícono de una mano sosteniendo un celular que escanea.
+- Título grande del producto en tipografía decorativa. EL TÍTULO ES EL DATO MÁS CONFIABLE PARA DISTINGUIRLOS.
 
-LOS 3 HABLADORES — usa el título visible para distinguirlos:
+LOS 4 HABLADORES — distingue SIEMPRE por el TÍTULO visible y por el ENVASE/CONTENIDO, NO solo por el color:
 
 1. YOGURT_VAINILLA — el título dice "Yogurt" (tipografía serif en azul oscuro) con subtítulo "Vainilla" debajo. La ilustración muestra un vaso/copa con yogurt blanco cremoso y una flor de vainilla beige.
 
 2. MALTEADA_CHOCOLATE — el título dice "Malteada" en cursiva color marrón/café con subtítulo "Chocolate" debajo. La ilustración muestra un vaso/copa con un batido o milkshake marrón de chocolate (a veces con una mano sosteniéndolo), y puede incluir imágenes secundarias de una barra de chocolate o cocoa en polvo.
 
-3. MERMELADA_FRESA — el título dice "Mermelada" en cursiva color rojo o rosa con subtítulo "Fresa" debajo. La ilustración muestra un frasco de vidrio con mermelada roja y fresas frescas alrededor.
+3. MERMELADA_FRESA — el título dice "Mermelada" en cursiva color rojo o rosa con subtítulo "Fresa" debajo (en ESPAÑOL). La ilustración muestra un FRASCO DE VIDRIO con mermelada roja y FRESAS FRESCAS REALES alrededor. La presencia del frasco de vidrio y de fruta real es la clave de este hablador.
+
+4. GOMAS_PROBIOTICAS — el título normalmente dice "Probiotic Gummies" (en INGLÉS, tipografía gruesa de palo seco en color ROSADO/MAGENTA fuerte). En algunas versiones puede estar en ESPAÑOL ("Gomitas con Probióticos" / "Gomitas Probióticas", con la palabra "Naturales" como subtítulo). La ilustración muestra GOMITAS / GOMINOLAS de color rojo o rosado, redondas y cubiertas de azúcar, servidas en uno o varios tazones/recipientes (bowl blanco, plato oscuro) y/o sueltas — NO hay frasco de vidrio ni fruta fresca real, son dulces de goma. Si ves dulces de goma rojos/rosados (en tazón o sueltos, NO un frasco de mermelada, NO fruta fresca) y/o el título menciona "Gummies" / "Gomitas" / "Probiotic" / "Probióticos", es este hablador.
+
+REGLA ANTI-CONFUSIÓN (Mermelada vs Gomas): ambas son ROJAS. NO decidas por el color. Decide por el título y por el envase: FRASCO DE VIDRIO + FRESAS REALES = MERMELADA_FRESA. GOMITAS SUELTAS (sin frasco, sin fruta real) o título con "Gummies"/"Gomitas"/"Probióticos" = GOMAS_PROBIOTICAS.
 
 INSTRUCCIONES:
 - Si reconoces el título del producto Y el aspecto general del hablador (no necesita estar perfectamente nítido, basta con que se distinga el título y la temática), responde con el código correspondiente.
@@ -44,6 +48,7 @@ Responde EXACTAMENTE una sola palabra de estas opciones, sin nada más:
 YOGURT_VAINILLA
 MALTEADA_CHOCOLATE
 MERMELADA_FRESA
+GOMAS_PROBIOTICAS
 NO_IDENTIFICADO`;
 
 export default async function handler(req, res) {
